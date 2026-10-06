@@ -24,12 +24,14 @@
         input[type="file"] { display: none; }
         .canvas-locked { background-color: #f1f5f9; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
         
+        /* 🌟 極致列印優化 (iOS Safari 完美相容版) */
         @media print {
-            @page { margin: 0; size: A4 portrait; }
+            @page { margin: 0 !important; size: A4 portrait; }
             body { background-color: white !important; margin: 0 !important; padding: 1cm 1.5cm !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .no-print { display: none !important; }
             
             #report-section { display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
+            #report-wrapper { box-shadow: none !important; border: none !important; border-radius: 0 !important; padding: 0 !important; }
             
             table.print-layout { display: table !important; width: 100% !important; border-collapse: collapse !important; page-break-inside: auto !important; }
             table.print-layout > thead { display: table-header-group !important; }
@@ -37,9 +39,11 @@
             table.print-layout tr { page-break-inside: avoid; page-break-after: auto; }
             table.print-layout tr.allow-break { page-break-inside: auto !important; }
             
-            .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 1rem; }
             .print-photo { max-width: 100% !important; max-height: 220px !important; object-fit: contain; }
             .print-sign { max-height: 40px !important; object-fit: contain; }
+            
+            body::after { content: none !important; }
         }
     </style>
 </head>
@@ -59,6 +63,7 @@
     <div id="form-section" class="pb-20">
         <main class="max-w-3xl mx-auto mt-4 px-4 space-y-4">
             
+            <!-- 區塊 1：基本資訊 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-list-check mr-2"></i>作業基本資訊</div>
                 <div class="p-4 space-y-4 text-sm">
@@ -119,6 +124,7 @@
                 </div>
             </div>
 
+            <!-- 區塊 2：勤前宣導 -->
             <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden">
                 <div class="bg-blue-50 px-4 py-2 border-b border-blue-100 font-bold text-blue-700 flex items-center">
                     <i class="fa-solid fa-bullhorn mr-2"></i>勤前宣導確認事項
@@ -133,6 +139,7 @@
                 <input type="hidden" id="t-briefing" value="已確認人員狀況、操作資格、作業環境、區域管制與高風險通報等事項。">
             </div>
 
+            <!-- 區塊 3：危害告知與對策 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-red-50 px-4 py-2 border-b border-red-100 font-bold text-red-700 flex justify-between items-center">
                     <div><i class="fa-solid fa-triangle-exclamation mr-2"></i>危害告知與對策</div>
@@ -183,6 +190,7 @@
                 </div>
             </div>
 
+            <!-- 區塊 4：現場照片 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片 <span class="text-red-500">*</span></div>
                 <div class="p-4 flex flex-col items-center">
@@ -196,6 +204,7 @@
                 </div>
             </div>
 
+            <!-- 區塊 5：主管簽名 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800"><i class="fa-solid fa-pen-clip mr-2"></i>現場作業主管簽名 <span class="text-red-500">*</span></div>
                 <div class="p-4">
@@ -206,6 +215,7 @@
                 </div>
             </div>
 
+            <!-- 區塊 6：參與人員簽名 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex justify-between items-center">
                     <div class="font-bold text-indigo-800"><i class="fa-solid fa-users mr-2"></i>參與人員簽到 <span class="text-red-500">*</span></div>
@@ -217,40 +227,47 @@
                 <div id="attendees-container" class="p-4 space-y-4"></div>
             </div>
 
+            <!-- 提交按鈕 -->
             <button id="submit-btn" type="button" onclick="submitData()" class="w-full bg-[#0f3460] text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-900 transition-colors mt-6 flex items-center justify-center">
                 <i class="fa-solid fa-paper-plane mr-2"></i> 送出並產生結案報表
             </button>
         </main>
     </div>
 
-    <!-- 結案報表區塊 -->
-    <div id="report-section" class="hidden no-print">
-        <table class="print-layout">
-            <thead>
-                <tr>
-                    <td style="padding-top: 15px; padding-bottom: 15px; border-bottom: 2px solid #0f3460;">
-                        <div style="text-align: center;">
-                            <h2 style="font-size: 24px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0;">信實集團 工具箱安全會議暨危害告知單</h2>
-                            <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id">會議編號：</p>
-                        </div>
-                    </td>
-                </tr>
-            </thead>
-            <tbody id="report-tbody">
-            </tbody>
-        </table>
+    <!-- 🌟 結案報表預覽區塊 (前台手機版) -->
+    <div id="report-section" class="hidden no-print max-w-4xl mx-auto px-0 md:px-4 py-8">
         
-        <div class="mt-6 flex space-x-4 no-print text-center px-4">
-            <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-lg shadow hover:bg-green-700">
-                <i class="fa-solid fa-print mr-2"></i>列印 / 另存 PDF
+        <div class="mb-4 px-4 flex justify-between items-center no-print">
+            <button onclick="window.location.reload()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition-colors">
+                <i class="fa-solid fa-arrow-left mr-1"></i> 建立新表單
             </button>
-            <button onclick="window.location.reload()" class="flex-1 bg-slate-200 text-slate-700 font-bold py-3 rounded-lg shadow hover:bg-slate-300">
-                <i class="fa-solid fa-rotate-right mr-2"></i>建立新表單
+            <button onclick="window.print()" class="bg-[#0f3460] text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-900 transition-colors shadow-md">
+                <i class="fa-solid fa-print mr-1"></i> 列印 / 下載 PDF
             </button>
+        </div>
+
+        <div class="bg-white p-2 md:p-6 shadow-lg rounded-none md:rounded-xl border border-slate-200" id="report-wrapper">
+            <table class="print-layout w-full">
+                <thead>
+                    <tr>
+                        <td style="padding-bottom: 20px;">
+                            <!-- 🌟 標題斷行與字體微調 -->
+                            <div style="text-align: center; border-bottom: 2px solid #0f3460; padding-bottom: 10px; padding-top: 10px;">
+                                <h2 style="font-size: 22px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0; line-height: 1.5;">信實集團<br><span style="font-size: 26px;">工具箱安全會議暨危害告知單</span></h2>
+                                <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id"></p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="report-tbody">
+                    <!-- 動態內容注入 -->
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
+        // ⚠️ 請確保這是您的 API 網址
         const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
         
         let attendeeCount = 0;
@@ -294,7 +311,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // 🌟 絕對精準的本地時間字串構造法
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -517,16 +533,18 @@
             document.getElementById('attendee-counter').innerText = `已簽署: ${confirmedAttendees} 人`;
         }
 
+        // 🌟 產生前台報表預覽 (含標題不斷行控制與換行標題)
         function renderReport(payload) {
             document.getElementById('form-section').classList.add('hidden'); 
             const reportSection = document.getElementById('report-section');
             const reportTbody = document.getElementById('report-tbody');
             
             document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
+            
             reportSection.classList.remove('hidden'); 
             window.scrollTo(0, 0);
 
-            let attendeesHtml = '<div class="grid grid-cols-3 gap-3 mt-2">';
+            let attendeesHtml = '<div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">';
             payload.attendees.forEach((p, idx) => {
                 attendeesHtml += `
                     <div class="border border-slate-200 rounded p-1 text-center bg-slate-50 avoid-break">
@@ -545,36 +563,37 @@
                 </div>`;
             }
 
+            // 🌟 加入 whitespace-nowrap w-[1%] 確保表頭不被擠壓折行
             reportTbody.innerHTML = `
                 <tr>
                     <td class="pt-4 pb-2 avoid-break">
-                        <table class="w-full text-xs border-collapse border border-slate-300">
+                        <table class="w-full text-xs border-collapse border border-slate-300 table-fixed">
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit}</td>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業單位</td>
+                                <td class="border border-slate-300 p-1.5">${payload.unit}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">日期時間</td>
+                                <td class="border border-slate-300 p-1.5">${payload.datetime}</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業名稱</td>
                                 <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業位置</td>
                                 <td class="border border-slate-300 p-1.5">${payload.location}</td>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業內容</td>
                                 <td class="border border-slate-300 p-1.5">${payload.content}</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">機具設備</td>
                                 <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">防護設備</td>
                                 <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
                             </tr>
                             <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">危害因素</td>
                                 <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
                             </tr>
                         </table>
@@ -583,14 +602,14 @@
                 <tr>
                     <td class="pt-2 pb-2 allow-break">
                         <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
-                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
+                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2 break-all break-words overflow-hidden">${payload.preventions}</div>
                     </td>
                 </tr>
                 <tr>
                     <td class="pt-2 pb-2 avoid-break">
                         <div class="border-t border-slate-200 pt-3">
                             <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
-                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-1/3">
+                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-[45%]">
                                 <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
                             </div>
                         </div>
@@ -612,8 +631,6 @@
                     </td>
                 </tr>` : ''}
             `;
-            
-            setTimeout(() => { window.print(); }, 800);
         }
 
         async function submitData() {
@@ -707,6 +724,7 @@
                 
                 const result = await response.json();
                 if(result.status === 'success') {
+                    alert(`✅ 會議紀錄送出成功！`);
                     renderReport(payload);
                 } else {
                     throw new Error(result.message);
