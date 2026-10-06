@@ -13,23 +13,26 @@
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🌟 極簡自然的列印樣式 (解決空白頁問題) */
+        /* 🌟 極簡自然的列印樣式 (不帶任何網頁殘影) */
         @media print {
             @page { margin: 1cm; size: A4 portrait; }
             body { background-color: white !important; margin: 0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-            .no-print { display: none !important; }
             
+            /* 列印時強制隱藏整個總後台介面 */
+            .no-print, #dashboard-view, .bg-\\[\\#0f3460\\] { display: none !important; }
+            
+            /* 列印時強制顯示報表區塊，並拔除所有多餘的間距與陰影 */
             #report-section { display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
+            #report-wrapper { box-shadow: none !important; border: none !important; border-radius: 0 !important; padding: 0 !important; background-color: white !important; }
             
-            /* 利用 table header group 達成自然重複標題，且不產生多餘空白頁 */
-            table.print-layout { display: table !important; width: 100% !important; border-collapse: collapse !important; }
+            table.print-layout { display: table !important; width: 100% !important; border-collapse: collapse !important; page-break-inside: auto !important; }
             table.print-layout > thead { display: table-header-group !important; }
             table.print-layout > tbody { display: table-row-group !important; }
+            table.print-layout tr { page-break-inside: avoid; page-break-after: auto; }
+            table.print-layout tr.allow-break { page-break-inside: auto !important; }
             
-            /* 讓內容自然流動，避免切斷 */
             .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; margin-bottom: 1.5rem !important; }
             
-            /* 圖片與簽名的精緻尺寸控制 */
             .print-photo { max-width: 100% !important; max-height: 250px !important; object-fit: contain; }
             .print-sign { max-height: 45px !important; object-fit: contain; }
             
@@ -39,6 +42,7 @@
 </head>
 <body class="text-slate-800">
 
+    <!-- 總後台藍色背景 (列印時會被 @media print 徹底隱藏) -->
     <div class="bg-[#0f3460] h-64 w-full absolute top-0 left-0 z-0 rounded-b-[40px] no-print"></div>
 
     <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 no-print" id="dashboard-view">
@@ -93,26 +97,15 @@
         </div>
     </div>
 
-    <!-- 報表預覽區塊 -->
-    <div id="report-section" class="hidden max-w-4xl mx-auto px-0 md:px-4 py-8 no-print">
-        
-        <div class="mb-4 px-4 flex justify-between items-center no-print">
-            <button onclick="closeReport()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition-colors">
-                <i class="fa-solid fa-arrow-left mr-1"></i> 返回清單
-            </button>
-            <button onclick="window.print()" class="bg-[#0f3460] text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-900 transition-colors shadow-md">
-                <i class="fa-solid fa-print mr-1"></i> 列印 / 下載 PDF
-            </button>
-        </div>
-
-        <!-- 🌟 重新設計的 Table 結構 -->
-        <div class="bg-white p-6 shadow-lg rounded-none md:rounded-xl border border-slate-200" id="report-wrapper">
+    <!-- 🌟 直接列印的隱藏報表區塊 (平常隱藏，僅在呼叫 window.print() 時被 CSS 強制顯示) -->
+    <div id="report-section" class="hidden">
+        <div id="report-wrapper">
             <table class="print-layout w-full">
                 <thead>
                     <tr>
                         <td style="padding-bottom: 20px;">
-                            <div style="text-align: center; border-bottom: 2px solid #0f3460; padding-bottom: 10px;">
-                                <h2 style="font-size: 24px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0;">信實集團 工具箱安全會議暨危害告知單</h2>
+                            <div style="text-align: center; border-bottom: 2px solid #0f3460; padding-bottom: 10px; padding-top: 10px;">
+                                <h2 style="font-size: 22px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0; line-height: 1.5;">信實集團<br><span style="font-size: 26px;">工具箱安全會議暨危害告知單</span></h2>
                                 <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id"></p>
                             </div>
                         </td>
@@ -176,8 +169,9 @@
                     <td class="px-4 py-3 font-bold text-[#0f3460]">${record.taskName}</td>
                     <td class="px-4 py-3 text-slate-600">${record.location}</td>
                     <td class="px-4 py-3 text-center">
-                        <button onclick="viewReport(${index})" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded text-xs font-bold transition-colors">
-                            <i class="fa-solid fa-file-pdf mr-1"></i>預覽/列印
+                        <!-- 🌟 按鈕文字改為「直接列印」 -->
+                        <button onclick="directPrintReport(${index})" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                            <i class="fa-solid fa-print mr-1"></i>直接列印
                         </button>
                     </td>
                 `;
@@ -187,11 +181,11 @@
             document.getElementById('records-table').classList.remove('hidden');
         }
 
-        // 🌟 重新設計渲染邏輯，移除強制分頁，使用自然流動的 <tr>
-        function viewReport(index) {
+        // 🌟 核心修改：一鍵直印邏輯，不再顯示網頁預覽
+        function directPrintReport(index) {
             let payload = { ...allRecords[index] };
             
-            // 欄位自動偏移修復
+            // 欄位自動偏移修復 (相容舊資料)
             if (payload.preventions && typeof payload.preventions === 'string' && payload.preventions.startsWith('data:image')) {
                 payload.photo = payload.supervisorSign;
                 payload.supervisorSign = payload.preventions;
@@ -201,19 +195,16 @@
                 payload.briefing = "無資料 (舊版紀錄無此欄位)";
             }
             
-            document.getElementById('dashboard-view').classList.add('hidden');
-            document.getElementById('report-section').classList.remove('hidden');
-            window.scrollTo(0, 0);
-
+            // 寫入會議編號
             document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
             
-            // 簽名版面
-            let attendeesHtml = '<div class="grid grid-cols-3 gap-3 mt-2">';
+            // 產出簽名 HTML
+            let attendeesHtml = '<div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">';
             if(payload.attendees && payload.attendees.length > 0) {
                 payload.attendees.forEach((p, idx) => {
                     attendeesHtml += `
-                        <div class="border border-slate-200 rounded p-1 text-center bg-slate-50">
-                            <img src="${p.sign}" class="print-sign w-full h-12 object-contain mb-1 bg-white border border-slate-100">
+                        <div class="border border-slate-200 rounded p-1 text-center bg-slate-50 avoid-break">
+                            <img src="${p.sign}" class="print-sign w-full h-10 object-contain mb-1 bg-white border border-slate-100">
                             <div class="text-[9px] text-slate-500 font-bold">簽署人員 ${idx + 1}</div>
                         </div>`;
                 });
@@ -222,90 +213,89 @@
             }
             attendeesHtml += '</div>';
 
-            // 照片版面
+            // 產出照片 HTML
             let photoHtml = '';
             if(payload.photo && payload.photo.startsWith('data:image')) {
                 photoHtml = `
-                <div class="mt-4 border-t-2 border-slate-800 pt-4 mb-4">
+                <div class="mt-4 border-t-2 border-slate-800 pt-3 avoid-break">
                     <h3 class="font-bold text-slate-800 mb-2 text-xs"><i class="fa-solid fa-camera mr-1"></i> 現場會議照片</h3>
                     <img src="${payload.photo}" class="print-photo w-full rounded border border-slate-200 bg-slate-50 mx-auto">
                 </div>`;
             }
 
-            // 🌟 將所有內容塞進單一個 <tr> 中，讓瀏覽器自由計算換頁位置
+            // 寫入報表內容
             document.getElementById('report-tbody').innerHTML = `
                 <tr>
-                    <td>
-                        <!-- 基本資訊表格 -->
-                        <div class="avoid-break mb-6">
-                            <table class="w-full text-xs border-collapse border border-slate-300">
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
-                                    <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit || ''}</td>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
-                                    <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
-                                    <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
-                                    <td class="border border-slate-300 p-1.5">${payload.location || ''}</td>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
-                                    <td class="border border-slate-300 p-1.5">${payload.content || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
-                                    <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
-                                    <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe || ''}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
-                                    <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards || ''}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <!-- 宣導與對策 -->
-                        <div class="mb-6">
-                            <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
-                            <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2 break-all break-words overflow-hidden">${payload.preventions || ''}</div>
-                        </div>
-
-                        <!-- 現場主管簽名 -->
-                        <div class="avoid-break mb-6 border-t border-slate-200 pt-4">
-                            <h3 class="font-bold text-slate-800 mb-2 text-xs">現場作業主管簽名</h3>
-                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-14 flex items-center justify-start w-1/3">
+                    <td class="pt-4 pb-2 avoid-break">
+                        <table class="w-full text-xs border-collapse border border-slate-300 table-fixed">
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業單位</td>
+                                <td class="border border-slate-300 p-1.5">${payload.unit || ''}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">日期時間</td>
+                                <td class="border border-slate-300 p-1.5">${payload.datetime || ''}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業名稱</td>
+                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName || ''}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業位置</td>
+                                <td class="border border-slate-300 p-1.5">${payload.location || ''}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">作業內容</td>
+                                <td class="border border-slate-300 p-1.5">${payload.content || ''}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">機具設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools || ''}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">防護設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe || ''}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 whitespace-nowrap w-[1%]">危害因素</td>
+                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards || ''}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pt-2 pb-2 allow-break">
+                        <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
+                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2 break-all break-words overflow-hidden">${payload.preventions || ''}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        <div class="border-t border-slate-200 pt-3">
+                            <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
+                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-[45%]">
                                 <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
                             </div>
                         </div>
-
-                        <!-- 人員簽單 -->
-                        <div class="avoid-break mb-6">
-                            <div class="bg-indigo-50 px-3 py-1.5 border-l-4 border-indigo-600 mb-2">
-                                <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
-                                <div class="text-[9px] text-indigo-700 font-bold mt-1">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
-                            </div>
-                            ${attendeesHtml}
-                        </div>
-
-                        <!-- 現場照片 -->
-                        <div class="avoid-break mb-4">
-                            ${photoHtml}
-                        </div>
                     </td>
                 </tr>
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        <div class="bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2 mt-2">
+                            <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
+                            <div class="text-[9px] text-indigo-700 font-bold mt-0.5">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
+                        </div>
+                        ${attendeesHtml}
+                    </td>
+                </tr>
+                ${payload.photo && payload.photo.startsWith('data:image') ? `
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        ${photoHtml}
+                    </td>
+                </tr>` : ''}
             `;
-        }
-
-        function closeReport() {
-            document.getElementById('report-section').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-            window.scrollTo(0, 0);
+            
+            // 🌟 核心：稍微延遲確保 DOM 生成完畢後，瞬間呼叫列印
+            setTimeout(() => { 
+                window.print(); 
+            }, 300);
         }
     </script>
 </body>
