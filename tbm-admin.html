@@ -10,12 +10,9 @@
     <style>
         * { font-family: 'Noto Sans TC', sans-serif; }
         body { background-color: #f4f7f9; }
-        
-        /* 隱藏捲軸但可滾動 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-        /* 🌟 列印報表專屬 CSS (與前台完全一致) */
         @media print {
             @page { margin: 0 !important; size: A4 portrait; }
             body { background-color: white !important; margin: 0 !important; padding: 1cm 1.5cm !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
@@ -37,12 +34,10 @@
 </head>
 <body class="text-slate-800">
 
-    <!-- 頂部與背景設計 (呼應您的 Hub) -->
     <div class="bg-[#0f3460] h-64 w-full absolute top-0 left-0 z-0 rounded-b-[40px] no-print"></div>
 
     <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 no-print" id="dashboard-view">
         
-        <!-- Header -->
         <div class="flex flex-col items-center mb-8 text-white">
             <div class="bg-white w-16 h-12 rounded-xl flex items-center justify-center mb-4 shadow-md relative overflow-hidden">
                 <div class="w-[85%] h-[60%] border-[3px] border-[#0f3460] rounded-[100%] flex items-center justify-center absolute">
@@ -53,7 +48,6 @@
             <p class="text-sm text-indigo-200 mt-1">TBM MANAGEMENT PORTAL</p>
         </div>
 
-        <!-- 數據儀表板 -->
         <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
             <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
                 <h2 class="text-lg font-bold text-[#0f3460]"><i class="fa-solid fa-folder-open mr-2"></i>會議紀錄清單</h2>
@@ -67,7 +61,6 @@
                 <p class="text-slate-500 font-bold">資料載入中，請稍候...</p>
             </div>
 
-            <!-- 清單列表 -->
             <div class="overflow-x-auto no-scrollbar">
                 <table class="w-full text-sm text-left hidden" id="records-table">
                     <thead class="text-xs text-slate-500 uppercase bg-slate-50">
@@ -80,7 +73,6 @@
                         </tr>
                     </thead>
                     <tbody id="records-tbody" class="divide-y divide-slate-100">
-                        <!-- 資料動態產生 -->
                     </tbody>
                 </table>
             </div>
@@ -96,7 +88,7 @@
         </div>
     </div>
 
-    <!-- 🌟 結案報表預覽區塊 (預設隱藏) -->
+    <!-- 報表預覽區塊 -->
     <div id="report-section" class="hidden no-print max-w-4xl mx-auto px-4 py-8">
         
         <div class="mb-4 no-print flex justify-between items-center">
@@ -109,7 +101,6 @@
         </div>
 
         <div class="bg-white p-2 shadow-lg rounded-xl border border-slate-200" id="report-wrapper">
-            <!-- 報表結構 (採用 table>thead 強制換頁設計) -->
             <table class="print-layout w-full">
                 <thead>
                     <tr>
@@ -122,17 +113,16 @@
                     </tr>
                 </thead>
                 <tbody id="report-tbody">
-                    <!-- 內容動態注入 -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
-        // ⚠️ 請務必替換為您最新部署的 API 網址！
+        // ⚠️ 請確保這是您的 API 網址
         const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
         
-        let allRecords = []; // 暫存所有抓下來的資料
+        let allRecords = []; 
 
         document.addEventListener('DOMContentLoaded', fetchRecords);
 
@@ -142,7 +132,6 @@
             document.getElementById('empty-state').classList.add('hidden');
             
             try {
-                // 加上 ?action=getRecords 來觸發我們剛寫的後台專屬邏輯
                 const response = await fetch(`${API_URL}?action=getRecords`);
                 const result = await response.json();
                 
@@ -169,7 +158,6 @@
             }
 
             allRecords.forEach((record, index) => {
-                // 格式化日期
                 const dt = new Date(record.datetime);
                 const dateStr = `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
                 
@@ -192,9 +180,21 @@
             document.getElementById('records-table').classList.remove('hidden');
         }
 
-        // 🌟 點擊按鈕後，呼叫與前台完全相同的渲染邏輯
         function viewReport(index) {
-            const payload = allRecords[index];
+            // 拷貝一份資料避免污染原始陣列
+            let payload = { ...allRecords[index] };
+            
+            // 🌟 智慧修復偏移機制 (Self-Healing)：
+            // 如果發現「危害對策 (preventions)」欄位裡面居然是圖片 (data:image)，
+            // 代表舊資料少了一欄，立刻幫它把所有欄位推回原位！
+            if (payload.preventions && typeof payload.preventions === 'string' && payload.preventions.startsWith('data:image')) {
+                payload.photo = payload.supervisorSign;
+                payload.supervisorSign = payload.preventions;
+                payload.preventions = payload.hazards;
+                payload.hazards = payload.ppe;
+                payload.ppe = payload.briefing || "無紀錄";
+                payload.briefing = "無資料 (舊版紀錄無此欄位)";
+            }
             
             document.getElementById('dashboard-view').classList.add('hidden');
             document.getElementById('report-section').classList.remove('hidden');
@@ -212,12 +212,12 @@
                         </div>`;
                 });
             } else {
-                attendeesHtml += '<div class="text-sm text-slate-500">無人員簽名紀錄</div>';
+                attendeesHtml += '<div class="text-sm text-slate-500 col-span-3">無人員簽名紀錄</div>';
             }
             attendeesHtml += '</div>';
 
             let photoHtml = '';
-            if(payload.photo) {
+            if(payload.photo && payload.photo.startsWith('data:image')) {
                 photoHtml = `
                 <div class="mt-4 border-t-2 border-slate-800 pt-3">
                     <h3 class="font-bold text-slate-800 mb-2 text-xs"><i class="fa-solid fa-camera mr-1"></i> 現場會議照片</h3>
@@ -231,31 +231,31 @@
                         <table class="w-full text-xs border-collapse border border-slate-300">
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit}</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit || ''}</td>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime}</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime || ''}</td>
                             </tr>
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
-                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
+                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName || ''}</td>
                             </tr>
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
-                                <td class="border border-slate-300 p-1.5">${payload.location}</td>
+                                <td class="border border-slate-300 p-1.5">${payload.location || ''}</td>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
-                                <td class="border border-slate-300 p-1.5">${payload.content}</td>
+                                <td class="border border-slate-300 p-1.5">${payload.content || ''}</td>
                             </tr>
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
-                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools || ''}</td>
                             </tr>
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
-                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe || ''}</td>
                             </tr>
                             <tr>
                                 <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
-                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
+                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards || ''}</td>
                             </tr>
                         </table>
                     </td>
@@ -263,7 +263,8 @@
                 <tr class="allow-break">
                     <td style="padding-top: 15px;">
                         <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
-                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
+                        <!-- 🌟 加入 break-words 確保超長英文字串(就算偏移也)不會把版面撐破 -->
+                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2 break-all break-words overflow-hidden">${payload.preventions || ''}</div>
                     </td>
                 </tr>
                 <tr class="avoid-break">
@@ -285,7 +286,7 @@
                         ${attendeesHtml}
                     </td>
                 </tr>
-                ${payload.photo ? `
+                ${photoHtml ? `
                 <tr class="avoid-break">
                     <td style="padding-top: 15px; padding-bottom: 20px;">
                         ${photoHtml}
