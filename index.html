@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工具箱安全會議暨危害告知單</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: #f4f7f9; }
+        /* 防止在畫布上簽名時網頁跟著滑動 */
+        canvas { touch-action: none; background-color: #ffffff; }
+    </style>
+</head>
+<body class="pb-20 text-slate-800">
+
+    <header class="bg-[#0f3460] text-white py-4 px-4 shadow-md sticky top-0 z-50 flex items-center justify-between">
+        <div class="flex items-center">
+            <div class="bg-yellow-500 text-[#0f3460] w-8 h-8 rounded flex items-center justify-center mr-3 shrink-0">
+                <i class="fa-solid fa-person-digging text-lg"></i>
+            </div>
+            <h1 class="text-lg font-bold tracking-widest leading-tight">工具箱安全會議紀錄<br><span class="text-[10px] text-yellow-300 font-medium">TBM & Hazard Notification</span></h1>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto mt-4 px-4 space-y-4">
+        
+        <!-- 區塊 1：基本資訊 -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-list-check mr-2"></i>作業基本資訊</div>
+            <div class="p-4 space-y-3 text-sm">
+                <div><label class="block text-slate-500 mb-1 font-bold">作業單位</label><input type="text" id="t-unit" class="w-full border border-slate-300 rounded p-2 focus:ring-1 focus:ring-[#0f3460]"></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">日期時間</label><input type="datetime-local" id="t-datetime" class="w-full border border-slate-300 rounded p-2"></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">作業名稱</label><input type="text" id="t-taskName" class="w-full border border-slate-300 rounded p-2"></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">作業位置</label><input type="text" id="t-location" class="w-full border border-slate-300 rounded p-2"></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">作業內容</label><textarea id="t-content" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">使用工具</label><input type="text" id="t-tools" class="w-full border border-slate-300 rounded p-2"></div>
+            </div>
+        </div>
+
+        <!-- 區塊 2：危害告知 -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-red-50 px-4 py-2 border-b border-red-100 font-bold text-red-700"><i class="fa-solid fa-triangle-exclamation mr-2"></i>危害告知與對策</div>
+            <div class="p-4 space-y-3 text-sm">
+                <div><label class="block text-slate-500 mb-1 font-bold">準備防護設備</label><input type="text" id="t-ppe" placeholder="例: 安全帽、防護鞋、背負式安全帶" class="w-full border border-slate-300 rounded p-2"></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">可能危害因素</label><textarea id="t-hazards" rows="2" placeholder="例: 墜落、感電、物體飛落" class="w-full border border-slate-300 rounded p-2"></textarea></div>
+                <div><label class="block text-slate-500 mb-1 font-bold">危害防止對策</label><textarea id="t-preventions" rows="2" class="w-full border border-slate-300 rounded p-2"></textarea></div>
+            </div>
+        </div>
+
+        <!-- 區塊 3：主管簽名 -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800"><i class="fa-solid fa-pen-clip mr-2"></i>現場作業主管簽名</div>
+            <div class="p-4">
+                <canvas id="canvas-supervisor" class="w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-crosshair"></canvas>
+                <div class="mt-2 text-right">
+                    <button type="button" onclick="clearCanvas('canvas-supervisor')" class="text-xs bg-slate-200 text-slate-600 px-3 py-1.5 rounded font-bold hover:bg-slate-300">清除重簽</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 區塊 4：參與人員簽名 (動態新增) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 font-bold text-indigo-800 flex justify-between items-center">
+                <span><i class="fa-solid fa-users mr-2"></i>參與人員簽到</span>
+                <button type="button" onclick="addAttendee()" class="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded shadow-sm hover:bg-indigo-700"><i class="fa-solid fa-plus mr-1"></i>新增人員</button>
+            </div>
+            <div id="attendees-container" class="p-4 space-y-4">
+                <!-- 動態人員列表會產生在這裡 -->
+            </div>
+        </div>
+
+        <!-- 提交按鈕 -->
+        <button id="submit-btn" type="button" onclick="submitData()" class="w-full bg-[#0f3460] text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-900 transition-colors mt-6 flex items-center justify-center">
+            <i class="fa-solid fa-paper-plane mr-2"></i> 送出安全會議紀錄
+        </button>
+
+    </main>
+
+    <script>
+        // ⚠️ 請替換為您的 Apps Script Web App 網址
+        const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
+        
+        let attendeeCount = 0;
+
+        // 初始化日期時間為現在
+        document.addEventListener('DOMContentLoaded', () => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('t-datetime').value = now.toISOString().slice(0,16);
+            
+            initSignaturePad('canvas-supervisor');
+            addAttendee(); // 預設先給一個參與人員欄位
+        });
+
+        // 畫布簽名邏輯
+        function initSignaturePad(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            let isDrawing = false;
+
+            // 確保畫布解析度與實際顯示尺寸一致，避免筆跡偏移
+            function resizeCanvas() {
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#0f3460';
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            function getPos(e) {
+                const rect = canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            const start = (e) => { e.preventDefault(); isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+            const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+            const stop = () => { isDrawing = false; };
+
+            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
+            canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false});
+            canvas.addEventListener('touchend', stop);
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function isCanvasEmpty(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const blank = document.createElement('canvas');
+            blank.width = canvas.width; blank.height = canvas.height;
+            return canvas.toDataURL() === blank.toDataURL();
+        }
+
+        // 動態新增參與人員
+        function addAttendee() {
+            attendeeCount++;
+            const id = `attendee-${attendeeCount}`;
+            const html = `
+                <div id="${id}" class="bg-slate-50 border border-slate-200 rounded-lg p-3 relative">
+                    <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-2 right-2 text-red-400 hover:text-red-600"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
+                    <div class="mb-2"><label class="block text-xs text-slate-500 mb-1 font-bold">參與人員姓名</label><input type="text" class="attendee-name w-full border border-slate-300 rounded p-2 text-sm focus:ring-1 focus:ring-indigo-500" placeholder="請輸入姓名"></div>
+                    <div>
+                        <label class="block text-xs text-slate-500 mb-1 font-bold">人員簽名</label>
+                        <canvas id="canvas-${id}" class="attendee-canvas w-full h-24 border border-dashed border-slate-300 rounded bg-white cursor-crosshair"></canvas>
+                        <div class="mt-1 text-right"><button type="button" onclick="clearCanvas('canvas-${id}')" class="text-[10px] text-slate-500 hover:text-slate-800 underline">清除重簽</button></div>
+                    </div>
+                </div>`;
+            document.getElementById('attendees-container').insertAdjacentHTML('beforeend', html);
+            initSignaturePad(`canvas-${id}`);
+        }
+
+        // 送出資料至 Google Apps Script
+        async function submitData() {
+            const btn = document.getElementById('submit-btn');
+            
+            // 防呆檢查
+            const taskName = document.getElementById('t-taskName').value;
+            if(!taskName) return alert("請輸入作業名稱！");
+            if(isCanvasEmpty('canvas-supervisor')) return alert("主管尚未簽名！");
+
+            // 收集主檔資料
+            const meetingId = "TBM-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(Math.random()*10000);
+            let payload = {
+                meetingId: meetingId,
+                unit: document.getElementById('t-unit').value,
+                datetime: document.getElementById('t-datetime').value.replace('T', ' '),
+                taskName: taskName,
+                location: document.getElementById('t-location').value,
+                content: document.getElementById('t-content').value,
+                tools: document.getElementById('t-tools').value,
+                ppe: document.getElementById('t-ppe').value,
+                hazards: document.getElementById('t-hazards').value,
+                preventions: document.getElementById('t-preventions').value,
+                supervisorSign: document.getElementById('canvas-supervisor').toDataURL('image/png'),
+                attendees: []
+            };
+
+            // 收集明細資料
+            const attendeeDivs = document.querySelectorAll('[id^="attendee-"]');
+            for(let div of attendeeDivs) {
+                const name = div.querySelector('.attendee-name').value;
+                const canvas = div.querySelector('.attendee-canvas');
+                if(name && !isCanvasEmpty(canvas.id)) {
+                    payload.attendees.push({
+                        name: name,
+                        sign: canvas.toDataURL('image/png'),
+                        timestamp: new Date().toLocaleString('zh-TW')
+                    });
+                }
+            }
+
+            if(payload.attendees.length === 0) {
+                if(!confirm("您沒有新增任何參與人員的有效簽名，確定要送出嗎？")) return;
+            }
+
+            // 鎖定按鈕顯示 Loading
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 資料傳送中...';
+
+            try {
+                // 使用 text/plain 避免 CORS 預檢請求錯誤
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                
+                const result = await response.json();
+                if(result.status === 'success') {
+                    alert("✅ 會議紀錄與簽名已成功送出！");
+                    window.location.reload(); // 送出成功後重整頁面
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                alert("❌ 送出失敗，請檢查網路連線或 API 網址設定。\n錯誤訊息：" + error);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> 送出安全會議紀錄';
+            }
+        }
+    </script>
+</body>
+</html>
