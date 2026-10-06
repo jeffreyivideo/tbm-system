@@ -2,14 +2,16 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- 🌟 加入 viewport-fit=cover 確保在 iPhone 等設備上顯示正常，並限制縮放 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>工具箱安全會議暨危害告知單</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * { font-family: 'Noto Sans TC', sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: #f4f7f9; }
+        body { background-color: #f4f7f9; overscroll-behavior-y: none; } /* 防止下拉更新干擾 */
+        /* 🌟 嚴格鎖定畫布觸控行為，防止滑動網頁 */
         canvas { touch-action: none; background-color: #ffffff; }
         .chip-checkbox { display: none; }
         .chip-label {
@@ -22,13 +24,15 @@
         .chip-danger:checked + .chip-label { background-color: #ef4444; border-color: #ef4444; }
         .chip-safe:checked + .chip-label { background-color: #10b981; border-color: #10b981; }
         input[type="file"] { display: none; }
+        
+        /* 鎖定畫布的樣式 */
+        .canvas-locked { background-color: #f1f5f9; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
     </style>
 </head>
 <body class="pb-20 text-slate-800">
 
     <header class="bg-[#0f3460] text-white py-3 px-4 shadow-md sticky top-0 z-50 flex items-center justify-between">
         <div class="flex items-center">
-            <!-- 信實 Logo (確保邊框顏色正確) -->
             <div class="bg-white w-10 h-7 rounded flex items-center justify-center mr-3 shadow-sm relative overflow-hidden shrink-0">
                 <div class="w-[85%] h-[60%] border-[2px] border-[#0f3460] rounded-[100%] flex items-center justify-center absolute">
                     <span class="text-[#0f3460] font-bold italic text-[8px] tracking-tighter" style="font-family: Arial, sans-serif;">sincere</span>
@@ -54,7 +58,6 @@
                     <div><label class="block text-slate-500 mb-1 font-bold">作業人數 <span class="text-red-500">*</span></label><input type="number" id="t-peopleCount" placeholder="人" min="1" class="w-full border border-slate-300 rounded p-2 text-center"></div>
                 </div>
                 
-                <!-- 🌟 修改為：可複選的作業位置 + 區域填寫 -->
                 <div>
                     <label class="block text-slate-500 mb-1 font-bold">作業位置 (可複選)</label>
                     <div id="cg-location" class="mb-2">
@@ -68,7 +71,6 @@
                     </div>
                 </div>
 
-                <!-- 🌟 修改為：單選的作業內容 -->
                 <div>
                     <label class="block text-slate-500 mb-1 font-bold">作業內容 (單選)</label>
                     <div id="cg-content" class="mb-2">
@@ -116,7 +118,6 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-red-50 px-4 py-2 border-b border-red-100 font-bold text-red-700 flex justify-between items-center">
                 <div><i class="fa-solid fa-triangle-exclamation mr-2"></i>危害告知與對策</div>
-                <!-- 改為顯示綠燈，代表已內建備援對策 -->
                 <span id="db-status" class="text-[10px] text-green-600 font-bold"><i class="fa-solid fa-shield-check"></i> 安全對策庫就緒</span>
             </div>
             <div class="p-4 space-y-5 text-sm">
@@ -168,10 +169,10 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片</div>
             <div class="p-4 flex flex-col items-center">
-                <div id="photo-preview" class="w-full h-40 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-3">
+                <div id="photo-preview" class="w-full h-40 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-3 relative">
                     <span class="text-slate-400 text-sm"><i class="fa-regular fa-image text-3xl mb-1 block text-center"></i>尚未上傳照片</span>
                 </div>
-                <label class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors w-full text-center">
+                <label class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold py-3 px-4 rounded-lg cursor-pointer transition-colors w-full text-center">
                     <i class="fa-solid fa-camera-retro mr-1"></i> 點擊拍攝或選擇照片
                     <input type="file" id="t-photo" accept="image/*" capture="environment" onchange="previewImage(event)">
                 </label>
@@ -182,18 +183,19 @@
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800"><i class="fa-solid fa-pen-clip mr-2"></i>現場作業主管簽名 <span class="text-red-500">*</span></div>
             <div class="p-4">
-                <canvas id="canvas-supervisor" class="w-full h-32 border-2 border-dashed border-slate-300 rounded-lg cursor-crosshair"></canvas>
+                <!-- 🌟 放大畫布高度 h-48 -->
+                <canvas id="canvas-supervisor" class="w-full h-48 border-2 border-dashed border-slate-300 rounded-lg cursor-crosshair"></canvas>
                 <div class="mt-2 text-right">
-                    <button type="button" onclick="clearCanvas('canvas-supervisor')" class="text-xs bg-slate-200 text-slate-600 px-3 py-1.5 rounded font-bold hover:bg-slate-300">清除重簽</button>
+                    <button type="button" onclick="clearCanvas('canvas-supervisor')" class="text-xs bg-slate-200 text-slate-600 px-4 py-2 rounded font-bold hover:bg-slate-300">清除重簽</button>
                 </div>
             </div>
         </div>
 
-        <!-- 區塊 6：參與人員簽名 -->
+        <!-- 🌟 區塊 6：參與人員簽名 (改為簽署確認模式) -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 font-bold text-indigo-800 flex justify-between items-center">
                 <span><i class="fa-solid fa-users mr-2"></i>參與人員簽到 <span class="text-red-500">*</span></span>
-                <button type="button" onclick="addAttendee()" class="bg-indigo-600 text-white text-[10px] px-2 py-1 rounded shadow-sm hover:bg-indigo-700"><i class="fa-solid fa-plus mr-1"></i>新增人員</button>
+                <span class="text-xs font-normal text-indigo-500" id="attendee-counter">已簽署: 0 人</span>
             </div>
             <div id="attendees-container" class="p-4 space-y-4"></div>
         </div>
@@ -210,9 +212,9 @@
         const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
         
         let attendeeCount = 0;
+        let confirmedAttendees = 0;
         let photoBase64 = ""; 
 
-        // 🌟 強大的內建預設備援對策庫 (解決同步失敗問題)
         let globalPreventionRules = {
             "滑倒/跌倒": "1. 環境整理：作業前應確認地面、通道狀況，設備線材應妥善放置；照明不足時增設照明。\n2. 濕滑管制：清洗打蠟作業應設置警告標示並適當圈圍，必要時調整動線。\n3. 個人防護：作業人員應穿著具防滑功能之工作鞋。",
             "墜落/滾落": "1. 高處防護：2公尺以上高處作業應設置墜落防護措施，正確使用安全帽、安全帶。\n2. 限制條件：遇強風、大雨、視線不良或身體不適時，不得從事高處作業。\n3. 高空車作業：操作人員應具資格並完成檢點；安全帶掛設於指定掛點，嚴禁攀爬護欄。",
@@ -232,7 +234,6 @@
 
         function cleanString(str) { return String(str).replace(/[\s、/／\(\)（）]/g, '').toLowerCase(); }
 
-        // 雖然有內建備援，但仍會嘗試抓取 Excel 最新資料，若抓到就覆蓋內建的
         async function fetchPreventionRules() {
             try {
                 const response = await fetch(API_URL);
@@ -241,15 +242,12 @@
                     let rawData = result.data;
                     let newRules = {};
                     for (let key in rawData) { newRules[cleanString(key)] = rawData[key]; }
-                    // 如果 Excel 有抓到內容，替換掉預設庫
                     if(Object.keys(newRules).length > 0) {
                         globalPreventionRules = newRules;
                         document.getElementById('db-status').innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i> 對策庫已同步 (Excel)';
                     }
                 }
-            } catch (error) {
-                console.log("無法連線 Excel，使用內建備援對策");
-            }
+            } catch (error) { console.log("使用內建備援對策"); }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -260,6 +258,13 @@
             initSignaturePad('canvas-supervisor');
             addAttendee(); 
             fetchPreventionRules();
+            
+            // 🌟 嚴格禁止網頁捲動行為的補強
+            document.body.addEventListener('touchmove', function(e) {
+                if (e.target.tagName === 'CANVAS') {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         });
 
         function generatePreventions() {
@@ -268,18 +273,13 @@
             
             hazards.forEach(hz => {
                 let cleanHz = cleanString(hz);
-                // 為了讓內建備援也能被配對到，我們將內建庫的 key 也轉為 cleanString 來比對
                 let matchText = "";
                 for (let key in globalPreventionRules) {
                     if (cleanString(key) === cleanHz) { matchText = globalPreventionRules[key]; break; }
                 }
-                
-                if (matchText) {
-                    resultText += `\n✦【${hz}】\n${matchText}\n`;
-                }
+                if (matchText) resultText += `\n✦【${hz}】\n${matchText}\n`;
             });
             document.getElementById('t-preventions').value = resultText;
-            
             const textarea = document.getElementById('t-preventions');
             textarea.style.height = "auto";
             textarea.style.height = (textarea.scrollHeight) + "px";
@@ -292,9 +292,19 @@
             reader.onload = function(e) {
                 photoBase64 = e.target.result; 
                 const preview = document.getElementById('photo-preview');
-                preview.innerHTML = `<img src="${photoBase64}" class="w-full h-full object-contain">`;
+                // 添加刪除按鈕
+                preview.innerHTML = `
+                    <img src="${photoBase64}" class="w-full h-full object-cover">
+                    <button type="button" onclick="clearPhoto()" class="absolute top-2 right-2 bg-white/80 text-red-500 rounded-full w-8 h-8 flex items-center justify-center shadow hover:bg-white"><i class="fa-solid fa-trash"></i></button>
+                `;
             }
             reader.readAsDataURL(file); 
+        }
+
+        function clearPhoto() {
+            photoBase64 = "";
+            document.getElementById('t-photo').value = "";
+            document.getElementById('photo-preview').innerHTML = '<span class="text-slate-400 text-sm"><i class="fa-regular fa-image text-3xl mb-1 block text-center"></i>尚未上傳照片</span>';
         }
 
         function getCheckedValues(containerId) {
@@ -307,33 +317,66 @@
             return radio ? radio.value : "";
         }
 
+        // 🌟 簽名畫布核心邏輯
         function initSignaturePad(canvasId) {
             const canvas = document.getElementById(canvasId);
             const ctx = canvas.getContext('2d');
             let isDrawing = false;
+            
             function resizeCanvas() {
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width; canvas.height = rect.height;
-                ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#0f3460';
+                ctx.lineWidth = 4; // 筆觸加粗，手機更好寫
+                ctx.lineCap = 'round'; 
+                ctx.strokeStyle = '#0f3460';
             }
-            window.addEventListener('resize', resizeCanvas); resizeCanvas();
+            window.addEventListener('resize', resizeCanvas); 
+            // 延遲一點執行確保 DOM 已完全渲染
+            setTimeout(resizeCanvas, 100); 
+
             function getPos(e) {
                 const rect = canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                // 處理觸控或滑鼠事件
+                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                 return { x: clientX - rect.left, y: clientY - rect.top };
             }
-            const start = (e) => { e.preventDefault(); isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
-            const draw = (e) => { if (!isDrawing) return; e.preventDefault(); const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
-            const stop = () => { isDrawing = false; };
+
+            const start = (e) => { 
+                if(canvas.classList.contains('canvas-locked')) return;
+                e.preventDefault(); // 🌟 阻止預設行為 (防滑動)
+                isDrawing = true; 
+                const pos = getPos(e); 
+                ctx.beginPath(); 
+                ctx.moveTo(pos.x, pos.y); 
+            };
+            
+            const draw = (e) => { 
+                if (!isDrawing || canvas.classList.contains('canvas-locked')) return; 
+                e.preventDefault(); // 🌟 阻止預設行為 (防滑動)
+                const pos = getPos(e); 
+                ctx.lineTo(pos.x, pos.y); 
+                ctx.stroke(); 
+            };
+            
+            const stop = (e) => { 
+                if(isDrawing) { e.preventDefault(); }
+                isDrawing = false; 
+            };
+
             canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw);
             canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
-            canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false});
-            canvas.addEventListener('touchend', stop);
+            
+            // 手機觸控事件，必須設為 passive: false 才能 preventDefault
+            canvas.addEventListener('touchstart', start, {passive: false}); 
+            canvas.addEventListener('touchmove', draw, {passive: false});
+            canvas.addEventListener('touchend', stop, {passive: false});
+            canvas.addEventListener('touchcancel', stop, {passive: false});
         }
 
         function clearCanvas(canvasId) {
             const canvas = document.getElementById(canvasId);
+            if(canvas.classList.contains('canvas-locked')) return;
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
@@ -345,61 +388,111 @@
             return canvas.toDataURL() === blank.toDataURL();
         }
 
+        // 🌟 新增參與人員 (包含確認鎖定功能)
         function addAttendee() {
             attendeeCount++;
             const id = `attendee-${attendeeCount}`;
             const html = `
-                <div id="${id}" class="bg-slate-50 border border-slate-200 rounded-lg p-3 relative">
-                    <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-2 right-2 text-red-400 hover:text-red-600"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
+                <div id="${id}" class="bg-slate-50 border border-slate-200 rounded-lg p-3 relative attendee-block">
+                    <button type="button" onclick="removeAttendee('${id}')" class="absolute top-2 right-2 text-red-400 hover:text-red-600 z-10"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
                     <div>
-                        <label class="block text-xs text-slate-500 mb-1 font-bold">人員簽名 (請直接簽署姓名)</label>
-                        <canvas id="canvas-${id}" class="attendee-canvas w-full h-24 border border-dashed border-slate-300 rounded bg-white cursor-crosshair"></canvas>
-                        <div class="mt-1 text-right"><button type="button" onclick="clearCanvas('canvas-${id}')" class="text-[10px] text-slate-500 hover:text-slate-800 underline">清除重簽</button></div>
+                        <div class="flex justify-between items-end mb-1">
+                            <label class="block text-xs text-slate-500 font-bold">人員簽名 (請直接簽署姓名)</label>
+                        </div>
+                        <!-- 🌟 放大畫布高度 h-48 -->
+                        <canvas id="canvas-${id}" class="attendee-canvas w-full h-48 border-2 border-dashed border-slate-300 rounded-lg bg-white cursor-crosshair"></canvas>
+                        
+                        <div class="mt-3 flex justify-between items-center" id="controls-${id}">
+                            <button type="button" onclick="clearCanvas('canvas-${id}')" class="text-xs bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded font-bold shadow-sm hover:bg-slate-100">清除重簽</button>
+                            <button type="button" onclick="confirmSignature('${id}')" class="text-xs bg-indigo-500 text-white px-6 py-2 rounded font-bold shadow-sm hover:bg-indigo-600">確認並鎖定 <i class="fa-solid fa-check ml-1"></i></button>
+                        </div>
+                        <div id="locked-msg-${id}" class="hidden mt-2 text-center text-xs text-green-600 font-bold bg-green-50 py-1.5 rounded border border-green-100">
+                            <i class="fa-solid fa-lock mr-1"></i> 已確認簽署
+                        </div>
                     </div>
                 </div>`;
             document.getElementById('attendees-container').insertAdjacentHTML('beforeend', html);
             initSignaturePad(`canvas-${id}`);
         }
 
+        function removeAttendee(id) {
+            const block = document.getElementById(id);
+            if(block.classList.contains('is-confirmed')) {
+                confirmedAttendees--;
+                updateCounter();
+            }
+            block.remove();
+        }
+
+        // 🌟 確認簽名並鎖定畫布，同時產生下一個簽名框
+        function confirmSignature(id) {
+            if(isCanvasEmpty(`canvas-${id}`)) {
+                alert("請先簽名後再點擊確認！");
+                return;
+            }
+            
+            // 鎖定畫布
+            const canvas = document.getElementById(`canvas-${id}`);
+            canvas.classList.add('canvas-locked');
+            
+            // 隱藏控制按鈕，顯示鎖定訊息
+            document.getElementById(`controls-${id}`).classList.add('hidden');
+            document.getElementById(`locked-msg-${id}`).classList.remove('hidden');
+            
+            // 標記區塊為已確認
+            document.getElementById(id).classList.add('is-confirmed');
+            
+            confirmedAttendees++;
+            updateCounter();
+            
+            // 自動幫忙開啟下一個簽名框 (方便多人連續傳閱手機)
+            addAttendee();
+            
+            // 稍微往下捲動，讓新的簽名框出現在視線內
+            setTimeout(() => {
+                const newCanvas = document.getElementById(`canvas-attendee-${attendeeCount}`);
+                if(newCanvas) newCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        }
+
+        function updateCounter() {
+            document.getElementById('attendee-counter').innerText = `已簽署: ${confirmedAttendees} 人`;
+        }
+
         async function submitData() {
             const btn = document.getElementById('submit-btn');
             
-            // 🌟 防呆：作業名稱與作業人數
             const taskName = document.getElementById('t-taskName').value;
             const peopleCount = document.getElementById('t-peopleCount').value;
             if(!taskName) return alert("❌ 請填寫「作業名稱」！");
             if(!peopleCount || peopleCount < 1) return alert("❌ 請填寫有效的「作業人數」！");
             
-            // 防呆：危害因素
             const hazardsArr = getCheckedValues('cg-hazards');
             if(hazardsArr.length === 0) return alert("❌ 請至少勾選一項「可能危害因素」！");
 
-            // 防呆：主管簽名
             if(isCanvasEmpty('canvas-supervisor')) return alert("❌ 「現場作業主管」尚未簽名！");
 
-            // 防呆：人員簽名
             let validAttendees = [];
-            const attendeeDivs = document.querySelectorAll('[id^="attendee-"]');
-            for(let div of attendeeDivs) {
-                const canvas = div.querySelector('.attendee-canvas');
-                if(!isCanvasEmpty(canvas.id)) {
+            const blocks = document.querySelectorAll('.attendee-block');
+            blocks.forEach(block => {
+                // 只收集有被「確認並鎖定」的簽名，忽略尚未填寫的空白框
+                if(block.classList.contains('is-confirmed')) {
+                    const canvas = block.querySelector('.attendee-canvas');
                     validAttendees.push({
                         name: "現場人員簽名", 
                         sign: canvas.toDataURL('image/png'),
                         timestamp: new Date().toLocaleString('zh-TW')
                     });
                 }
-            }
+            });
 
-            if(validAttendees.length === 0) return alert("❌ 請至少有一位「參與人員」完成簽名！");
+            if(validAttendees.length === 0) return alert("❌ 請至少有一位「參與人員」完成簽署確認！");
 
-            // 組合作業位置 (航廈可複選 + 區域填寫)
             let locMainArr = getCheckedValues('cg-location');
             let locDetail = document.getElementById('t-location-detail').value;
             let fullLocation = locMainArr.join('、');
             if(locDetail) fullLocation += (fullLocation ? ` - ${locDetail}` : locDetail);
 
-            // 作業內容 (單選) + 其他補充
             let contentMain = getRadioValue('taskContent');
             let contentOther = document.getElementById('t-content-other').value;
             let fullContent = contentMain ? (contentOther ? `${contentMain}、${contentOther}` : contentMain) : contentOther;
@@ -442,7 +535,7 @@
                 
                 const result = await response.json();
                 if(result.status === 'success') {
-                    alert("✅ 會議紀錄與簽名已成功送出！");
+                    alert(`✅ 會議紀錄送出成功！\n共提交 ${validAttendees.length} 位人員簽名。`);
                     window.location.reload(); 
                 } else {
                     throw new Error(result.message);
