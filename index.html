@@ -24,33 +24,51 @@
         input[type="file"] { display: none; }
         .canvas-locked { background-color: #f1f5f9; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
         
-        /* 🌟 列印終極完美版 CSS */
+        /* 🌟 iOS Safari 終極列印解法 */
         @media print {
-            /* margin: 0 是消除網址與時間戳記的關鍵 */
-            @page { margin: 0; size: A4 portrait; }
+            /* 1. margin:0 強制擠掉瀏覽器自帶的頁首網址與頁碼 */
+            @page { margin: 0 !important; size: A4 portrait; }
+            
+            /* 2. 將邊距移到 body 身上，確保內容不會貼邊 */
             body { 
-                background-color: white; 
-                margin: 0; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact; 
+                background-color: white !important; 
+                margin: 0 !important; 
+                padding: 1cm 1.5cm !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
             }
+            
             .no-print { display: none !important; }
             
-            /* 利用 padding 取代原生的 margin，確保內容不會貼齊紙張邊緣 */
-            #report-section { display: block !important; padding: 1.5cm !important; }
+            /* 3. 徹底拔除所有可能干擾 Safari 表格重複標題的 CSS 屬性 */
+            #report-section, .print-container { 
+                display: block !important; 
+                position: static !important; 
+                margin: 0 !important; 
+                padding: 0 !important;
+                box-shadow: none !important; 
+                border: none !important; 
+                border-radius: 0 !important; 
+                max-width: none !important; 
+            }
             
-            /* 讓 table thead 在每一頁最上方完美重複印出 */
-            table.print-layout { width: 100%; border-collapse: collapse; }
-            table.print-layout > thead { display: table-header-group; }
-            table.print-layout > tbody { display: table-row-group; }
+            table.print-layout { 
+                display: table !important; 
+                width: 100% !important; 
+                border-collapse: collapse !important; 
+                page-break-inside: auto !important; 
+            }
+            table.print-layout > thead { display: table-header-group !important; }
+            table.print-layout > tbody { display: table-row-group !important; }
+            table.print-layout tr { page-break-inside: avoid; page-break-after: auto; }
+            table.print-layout tr.allow-break { page-break-inside: auto !important; }
             
-            /* 控制切頁行為 */
-            .avoid-break { page-break-inside: avoid; break-inside: avoid; }
-            .allow-break { page-break-inside: auto; break-inside: auto; }
+            /* 防止區塊被切開 */
+            .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
             
-            /* 🌟 縮小照片與簽名尺寸 */
-            .print-photo { max-width: 100% !important; max-height: 250px !important; object-fit: contain; }
-            .print-sign { max-height: 45px !important; object-fit: contain; }
+            /* 縮小圖片 */
+            .print-photo { max-width: 100% !important; max-height: 220px !important; object-fit: contain; }
+            .print-sign { max-height: 40px !important; object-fit: contain; }
         }
     </style>
 </head>
@@ -71,7 +89,6 @@
     <div id="form-section" class="pb-20">
         <main class="max-w-3xl mx-auto mt-4 px-4 space-y-4">
             
-            <!-- 區塊 1：基本資訊 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-list-check mr-2"></i>作業基本資訊</div>
                 <div class="p-4 space-y-4 text-sm">
@@ -132,7 +149,6 @@
                 </div>
             </div>
 
-            <!-- 區塊 2：勤前宣導 -->
             <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden">
                 <div class="bg-blue-50 px-4 py-2 border-b border-blue-100 font-bold text-blue-700 flex items-center">
                     <i class="fa-solid fa-bullhorn mr-2"></i>勤前宣導確認事項
@@ -147,7 +163,6 @@
                 <input type="hidden" id="t-briefing" value="已確認人員狀況、操作資格、作業環境、區域管制與高風險通報等事項。">
             </div>
 
-            <!-- 區塊 3：危害告知與對策 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-red-50 px-4 py-2 border-b border-red-100 font-bold text-red-700 flex justify-between items-center">
                     <div><i class="fa-solid fa-triangle-exclamation mr-2"></i>危害告知與對策</div>
@@ -198,7 +213,6 @@
                 </div>
             </div>
 
-            <!-- 區塊 4：現場照片 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片 <span class="text-red-500">*</span></div>
                 <div class="p-4 flex flex-col items-center">
@@ -212,7 +226,6 @@
                 </div>
             </div>
 
-            <!-- 區塊 5：主管簽名 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800"><i class="fa-solid fa-pen-clip mr-2"></i>現場作業主管簽名 <span class="text-red-500">*</span></div>
                 <div class="p-4">
@@ -223,7 +236,6 @@
                 </div>
             </div>
 
-            <!-- 區塊 6：參與人員簽名 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 flex justify-between items-center">
                     <div class="font-bold text-indigo-800"><i class="fa-solid fa-users mr-2"></i>參與人員簽到 <span class="text-red-500">*</span></div>
@@ -235,30 +247,29 @@
                 <div id="attendees-container" class="p-4 space-y-4"></div>
             </div>
 
-            <!-- 提交按鈕 -->
             <button id="submit-btn" type="button" onclick="submitData()" class="w-full bg-[#0f3460] text-white text-lg font-bold py-4 rounded-xl shadow-lg hover:bg-indigo-900 transition-colors mt-6 flex items-center justify-center">
                 <i class="fa-solid fa-paper-plane mr-2"></i> 送出並產生結案報表
             </button>
         </main>
     </div>
 
-    <!-- 🌟 結案報表區塊 -->
+    <!-- 🌟 結案報表區塊 (純淨列印版) -->
     <div id="report-section" class="hidden no-print">
         
-        <!-- 🌟 完美跨頁表格結構：讓 thead 在每一頁最頂部自動重複 -->
+        <!-- 🌟 完美強制換頁標題的秘密：table > thead -->
         <table class="print-layout">
             <thead>
                 <tr>
-                    <td class="pb-4 pt-6 border-b-2 border-[#0f3460]">
-                        <div class="text-center">
-                            <h2 class="text-2xl font-bold text-[#0f3460] tracking-wider mb-1">信實集團 工具箱安全會議暨危害告知單</h2>
-                            <p class="text-sm text-slate-500 font-bold" id="report-meeting-id">會議編號：</p>
+                    <td style="padding-top: 15px; padding-bottom: 15px; border-bottom: 2px solid #0f3460;">
+                        <div style="text-align: center;">
+                            <h2 style="font-size: 24px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0;">信實集團 工具箱安全會議暨危害告知單</h2>
+                            <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id">會議編號：</p>
                         </div>
                     </td>
                 </tr>
             </thead>
             <tbody id="report-tbody">
-                <!-- 報表內容注入區 -->
+                <!-- 動態注入的 TR 內容 -->
             </tbody>
         </table>
         
@@ -399,344 +410,4 @@
             return radio ? radio.value : "";
         }
 
-        function initSignaturePad(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            let isDrawing = false;
-            
-            function resizeCanvas() {
-                let tempImg = null;
-                if(!isCanvasEmpty(canvasId)) {
-                    tempImg = new Image();
-                    tempImg.src = canvas.toDataURL();
-                }
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width; canvas.height = rect.height;
-                ctx.lineWidth = 4; 
-                ctx.lineCap = 'round'; 
-                ctx.strokeStyle = '#0f3460';
-                if(tempImg) {
-                    tempImg.onload = function() { ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height); }
-                }
-            }
-            window.addEventListener('resize', resizeCanvas); 
-            setTimeout(resizeCanvas, 100); 
-
-            function getPos(e) {
-                const rect = canvas.getBoundingClientRect();
-                const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-
-            const start = (e) => { 
-                if(canvas.classList.contains('canvas-locked')) return;
-                e.preventDefault(); 
-                isDrawing = true; 
-                const pos = getPos(e); 
-                ctx.beginPath(); 
-                ctx.moveTo(pos.x, pos.y); 
-            };
-            
-            const draw = (e) => { 
-                if (!isDrawing || canvas.classList.contains('canvas-locked')) return; 
-                e.preventDefault(); 
-                const pos = getPos(e); 
-                ctx.lineTo(pos.x, pos.y); 
-                ctx.stroke(); 
-            };
-            
-            const stop = (e) => { 
-                if(isDrawing) { e.preventDefault(); }
-                isDrawing = false; 
-                canvasDataCache[canvasId] = canvas.toDataURL();
-            };
-
-            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw);
-            canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
-            canvas.addEventListener('touchstart', start, {passive: false}); 
-            canvas.addEventListener('touchmove', draw, {passive: false});
-            canvas.addEventListener('touchend', stop, {passive: false});
-            canvas.addEventListener('touchcancel', stop, {passive: false});
-        }
-
-        function clearCanvas(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            if(canvas.classList.contains('canvas-locked')) return;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvasDataCache[canvasId] = "";
-        }
-
-        function isCanvasEmpty(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const blank = document.createElement('canvas');
-            blank.width = canvas.width; blank.height = canvas.height;
-            return canvas.toDataURL() === blank.toDataURL();
-        }
-
-        function addAttendee() {
-            attendeeCount++;
-            const id = `attendee-${attendeeCount}`;
-            const html = `
-                <div id="${id}" class="bg-slate-50 border border-slate-200 rounded-lg p-3 relative attendee-block shadow-sm">
-                    <button type="button" onclick="removeAttendee('${id}')" class="absolute top-2 right-2 text-red-400 hover:text-red-600 z-10"><i class="fa-solid fa-circle-xmark text-lg"></i></button>
-                    <div>
-                        <div class="flex justify-between items-end mb-1">
-                            <label class="block text-xs text-slate-500 font-bold">第 ${attendeeCount} 位人員簽名</label>
-                        </div>
-                        <canvas id="canvas-${id}" class="attendee-canvas w-full h-64 border-2 border-dashed border-slate-300 rounded-lg bg-white cursor-crosshair"></canvas>
-                        
-                        <div class="mt-3 flex justify-between items-center" id="controls-${id}">
-                            <button type="button" onclick="clearCanvas('canvas-${id}')" class="text-xs bg-white border border-slate-300 text-slate-600 px-4 py-2 rounded font-bold shadow-sm hover:bg-slate-100">清除重簽</button>
-                            <button type="button" onclick="confirmSignature('${id}')" class="text-xs bg-indigo-500 text-white px-6 py-2 rounded font-bold shadow-sm hover:bg-indigo-600">確認並鎖定 <i class="fa-solid fa-check ml-1"></i></button>
-                        </div>
-                        <div id="locked-msg-${id}" class="hidden mt-2 text-center text-xs text-green-600 font-bold bg-green-50 py-1.5 rounded border border-green-100">
-                            <i class="fa-solid fa-lock mr-1"></i> 已確認簽署
-                        </div>
-                    </div>
-                </div>`;
-            document.getElementById('attendees-container').insertAdjacentHTML('beforeend', html);
-            initSignaturePad(`canvas-${id}`);
-        }
-
-        function removeAttendee(id) {
-            const block = document.getElementById(id);
-            if(block.classList.contains('is-confirmed')) {
-                confirmedAttendees--;
-                updateCounter();
-            }
-            block.remove();
-        }
-
-        function confirmSignature(id) {
-            if(isCanvasEmpty(`canvas-${id}`)) {
-                alert("請先簽名後再點擊確認！");
-                return;
-            }
-            const canvas = document.getElementById(`canvas-${id}`);
-            canvas.classList.add('canvas-locked');
-            document.getElementById(`controls-${id}`).classList.add('hidden');
-            document.getElementById(`locked-msg-${id}`).classList.remove('hidden');
-            document.getElementById(id).classList.add('is-confirmed');
-            
-            confirmedAttendees++;
-            updateCounter();
-            addAttendee();
-            
-            setTimeout(() => {
-                const newCanvas = document.getElementById(`canvas-attendee-${attendeeCount}`);
-                if(newCanvas) newCanvas.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 300);
-        }
-
-        function updateCounter() {
-            document.getElementById('attendee-counter').innerText = `已簽署: ${confirmedAttendees} 人`;
-        }
-
-        // 🌟 報表渲染邏輯：強制多個 <tr> 確保 thead 在新的一頁自動印出
-        function renderReport(payload) {
-            document.getElementById('form-section').classList.add('hidden'); 
-            const reportSection = document.getElementById('report-section');
-            const reportTbody = document.getElementById('report-tbody');
-            
-            document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
-            reportSection.classList.remove('hidden'); 
-            window.scrollTo(0, 0);
-
-            // 🌟 縮小簽名的尺寸，一列三個排版
-            let attendeesHtml = '<div class="grid grid-cols-3 gap-3 mt-2">';
-            payload.attendees.forEach((p, idx) => {
-                attendeesHtml += `
-                    <div class="border border-slate-200 rounded p-1 text-center bg-slate-50 avoid-break">
-                        <img src="${p.sign}" class="print-sign w-full h-12 object-contain mb-1 bg-white border border-slate-100">
-                        <div class="text-[9px] text-slate-500 font-bold">簽署人員 ${idx + 1}</div>
-                    </div>`;
-            });
-            attendeesHtml += '</div>';
-
-            // 🌟 縮小照片的高度，避免照片太大強迫自己跳一頁
-            let photoHtml = '';
-            if(payload.photo) {
-                photoHtml = `
-                <div class="mt-4 border-t-2 border-slate-800 pt-3 avoid-break">
-                    <h3 class="font-bold text-slate-800 mb-2 text-xs"><i class="fa-solid fa-camera mr-1"></i> 現場會議照片</h3>
-                    <img src="${payload.photo}" class="print-photo w-full rounded border border-slate-200 bg-slate-50 mx-auto">
-                </div>`;
-            }
-
-            // 🌟 將內容拆分在多個 <tr><td> 中，這是讓瀏覽器允許中途換頁的唯一秘訣
-            reportTbody.innerHTML = `
-                <tr>
-                    <td class="pt-4 pb-2">
-                        <table class="w-full text-xs border-collapse border border-slate-300 avoid-break">
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit}</td>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
-                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
-                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
-                                <td class="border border-slate-300 p-1.5">${payload.location}</td>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
-                                <td class="border border-slate-300 p-1.5">${payload.content}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
-                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
-                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
-                            </tr>
-                            <tr>
-                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
-                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
-                            </tr>
-                        </table>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="pt-2 pb-2 allow-break">
-                        <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
-                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="pt-2 pb-2 avoid-break">
-                        <div class="border-t border-slate-200 pt-3">
-                            <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
-                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-1/3">
-                                <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="pt-2 pb-2 avoid-break">
-                        <div class="bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2 mt-2">
-                            <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
-                            <div class="text-[9px] text-indigo-700 font-bold mt-0.5">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
-                        </div>
-                        ${attendeesHtml}
-                    </td>
-                </tr>
-                ${payload.photo ? `
-                <tr>
-                    <td class="pt-2 pb-2 avoid-break">
-                        ${photoHtml}
-                    </td>
-                </tr>` : ''}
-            `;
-        }
-
-        async function submitData() {
-            const btn = document.getElementById('submit-btn');
-            
-            const taskName = document.getElementById('t-taskName').value;
-            const peopleCount = document.getElementById('t-peopleCount').value;
-            if(!taskName) return alert("❌ 請填寫「作業名稱」！");
-            if(!peopleCount || peopleCount < 1) return alert("❌ 請填寫有效的「作業人數」！");
-            
-            let locMainArr = getCheckedValues('cg-location');
-            let locDetail = document.getElementById('t-location-detail').value;
-            if(!locDetail.trim()) return alert("❌ 為了確保施工安全，請務必填寫詳細「區域」！");
-
-            let contentMain = getRadioValue('taskContent');
-            let contentOther = document.getElementById('t-content-other').value;
-            if(contentMain === "其他" && !contentOther.trim()) return alert("❌ 您點選了作業內容為「其他」，請在下方補充詳細內容！");
-            if(!contentMain && !contentOther) return alert("❌ 請點選「作業內容」！");
-            
-            let toolsArr = getCheckedValues('cg-tools');
-            if(toolsArr.includes("其他") && !document.getElementById('t-tools-other').value.trim()) return alert("❌ 您點選了機具設備為「其他」，請在下方補充詳細內容！");
-            if(toolsArr.length === 0 && !document.getElementById('t-tools-other').value) return alert("❌ 請至少勾選一項「機具設備」！");
-
-            const hazardsArr = getCheckedValues('cg-hazards');
-            if(hazardsArr.length === 0) return alert("❌ 請至少勾選一項「可能危害因素」！");
-
-            if(!photoBase64) return alert("❌ 為了落實稽核，請務必上傳「現場會議照片」才能送出！");
-
-            if(isCanvasEmpty('canvas-supervisor')) return alert("❌ 「現場作業主管」尚未簽名！");
-
-            let validAttendees = [];
-            const blocks = document.querySelectorAll('.attendee-block');
-            blocks.forEach(block => {
-                if(block.classList.contains('is-confirmed')) {
-                    const canvas = block.querySelector('.attendee-canvas');
-                    validAttendees.push({
-                        name: "現場人員簽名", 
-                        sign: canvas.toDataURL('image/png'),
-                        timestamp: new Date().toLocaleString('zh-TW')
-                    });
-                }
-            });
-
-            const expectedCount = parseInt(peopleCount, 10);
-            if(validAttendees.length !== expectedCount) {
-                return alert(`❌ 人數不符警報！\n\n您填寫的作業人數為【 ${expectedCount} 人 】，\n但確認簽名的只有【 ${validAttendees.length} 人 】。\n請確認簽署完畢或修改人數。`);
-            }
-
-            let fullLocation = locMainArr.join('、');
-            fullLocation += (fullLocation ? ` - ${locDetail}` : locDetail);
-
-            let fullContent = contentMain ? (contentMain === "其他" ? contentOther : (contentOther ? `${contentMain}、${contentOther}` : contentMain)) : contentOther;
-            
-            if(document.getElementById('t-tools-other').value) {
-                toolsArr = toolsArr.filter(item => item !== "其他");
-                toolsArr.push(document.getElementById('t-tools-other').value);
-            }
-            
-            let ppeArr = getCheckedValues('cg-ppe');
-            let briefingText = document.getElementById('t-briefing').value;
-            let fullTaskName = `${taskName} (共 ${expectedCount} 人)`;
-
-            const meetingId = "TBM-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(Math.random()*10000);
-            
-            let payload = {
-                meetingId: meetingId,
-                unit: document.getElementById('t-unit').value,
-                datetime: document.getElementById('t-datetime').value.replace('T', ' '),
-                taskName: fullTaskName,
-                location: fullLocation,
-                content: fullContent,
-                tools: toolsArr.join('、'),
-                briefing: briefingText, 
-                ppe: ppeArr.join('、'),
-                hazards: hazardsArr.join('、'),
-                preventions: document.getElementById('t-preventions').value,
-                supervisorSign: document.getElementById('canvas-supervisor').toDataURL('image/png'),
-                photo: photoBase64,
-                attendees: validAttendees
-            };
-
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> 圖片壓縮與資料傳送中...';
-
-            try {
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
-                });
-                
-                const result = await response.json();
-                if(result.status === 'success') {
-                    alert(`✅ 會議紀錄送出成功！`);
-                    renderReport(payload);
-                } else {
-                    throw new Error(result.message);
-                }
-            } catch (error) {
-                alert("❌ 送出失敗，請檢查網路連線或 API 網址設定。\n錯誤訊息：" + error);
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-paper-plane mr-2"></i> 送出並產生結案報表';
-            }
-        }
-    </script>
-</body>
-</html>
+        function initSignaturePad(canvas
