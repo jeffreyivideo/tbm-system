@@ -24,33 +24,33 @@
         input[type="file"] { display: none; }
         .canvas-locked { background-color: #f1f5f9; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
         
-        /* 🌟 極致列印優化 (iOS Safari 相容版) */
+        /* 🌟 列印終極完美版 CSS */
         @media print {
-            /* 設定邊距並隱藏瀏覽器預設的網址與頁碼 */
-            @page { margin: 1cm; size: A4 portrait; }
-            body { background-color: white; overscroll-behavior-y: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; }
-            
+            /* margin: 0 是消除網址與時間戳記的關鍵 */
+            @page { margin: 0; size: A4 portrait; }
+            body { 
+                background-color: white; 
+                margin: 0; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact; 
+            }
             .no-print { display: none !important; }
             
-            /* 清除網頁的陰影與圓角 */
-            #report-section { display: block !important; margin: 0 !important; padding: 0 !important; max-width: 100% !important; }
-            #report-content-wrapper { padding: 0 !important; border: none !important; box-shadow: none !important; border-radius: 0 !important; }
+            /* 利用 padding 取代原生的 margin，確保內容不會貼齊紙張邊緣 */
+            #report-section { display: block !important; padding: 1.5cm !important; }
             
-            /* 讓 table thead 在每一頁最上方重複印出 (Safari 救星) */
-            table.print-layout { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+            /* 讓 table thead 在每一頁最上方完美重複印出 */
+            table.print-layout { width: 100%; border-collapse: collapse; }
             table.print-layout > thead { display: table-header-group; }
             table.print-layout > tbody { display: table-row-group; }
-            table.print-layout tr { page-break-inside: avoid; page-break-after: auto; }
             
-            /* 避免區塊被切斷 */
-            .avoid-break { page-break-inside: avoid; break-inside: avoid; margin-bottom: 1rem; }
+            /* 控制切頁行為 */
+            .avoid-break { page-break-inside: avoid; break-inside: avoid; }
+            .allow-break { page-break-inside: auto; break-inside: auto; }
             
-            /* 縮小照片與簽名尺寸，讓版面更緊湊 */
-            .print-photo { max-width: 100% !important; max-height: 200px !important; object-fit: contain; }
-            .print-sign { max-height: 40px !important; object-fit: contain; }
-            
-            /* 強制隱藏某些行動版瀏覽器加入的頁尾網址 */
-            body::after { content: none !important; }
+            /* 🌟 縮小照片與簽名尺寸 */
+            .print-photo { max-width: 100% !important; max-height: 250px !important; object-fit: contain; }
+            .print-sign { max-height: 45px !important; object-fit: contain; }
         }
     </style>
 </head>
@@ -243,13 +243,13 @@
     </div>
 
     <!-- 🌟 結案報表區塊 -->
-    <div id="report-section" class="hidden max-w-4xl mx-auto mt-4 px-4 pb-20 no-print">
+    <div id="report-section" class="hidden no-print">
         
-        <!-- 🌟 使用 table thead 結構，確保 iOS Safari 每一頁上方都有標題 -->
-        <table class="print-layout w-full bg-white rounded-xl border border-slate-200" id="report-content-wrapper">
+        <!-- 🌟 完美跨頁表格結構：讓 thead 在每一頁最頂部自動重複 -->
+        <table class="print-layout">
             <thead>
                 <tr>
-                    <td class="pb-4 pt-6 px-6 border-b-2 border-[#0f3460]">
+                    <td class="pb-4 pt-6 border-b-2 border-[#0f3460]">
                         <div class="text-center">
                             <h2 class="text-2xl font-bold text-[#0f3460] tracking-wider mb-1">信實集團 工具箱安全會議暨危害告知單</h2>
                             <p class="text-sm text-slate-500 font-bold" id="report-meeting-id">會議編號：</p>
@@ -262,7 +262,7 @@
             </tbody>
         </table>
         
-        <div class="mt-6 flex space-x-4 no-print">
+        <div class="mt-6 flex space-x-4 no-print text-center px-4">
             <button onclick="window.print()" class="flex-1 bg-green-600 text-white font-bold py-3 rounded-lg shadow hover:bg-green-700">
                 <i class="fa-solid fa-print mr-2"></i>列印 / 另存 PDF
             </button>
@@ -534,29 +534,28 @@
             document.getElementById('attendee-counter').innerText = `已簽署: ${confirmedAttendees} 人`;
         }
 
-        // 🌟 報表渲染邏輯：縮小簽名與圖片，並使用 avoid-break 避免斷層
+        // 🌟 報表渲染邏輯：強制多個 <tr> 確保 thead 在新的一頁自動印出
         function renderReport(payload) {
             document.getElementById('form-section').classList.add('hidden'); 
             const reportSection = document.getElementById('report-section');
             const reportTbody = document.getElementById('report-tbody');
             
             document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
-            
             reportSection.classList.remove('hidden'); 
             window.scrollTo(0, 0);
 
-            // 🌟 將簽名縮小為 3 欄，並調降圖片高度
-            let attendeesHtml = '<div class="grid grid-cols-2 md:grid-cols-3 gap-3 mt-2">';
+            // 🌟 縮小簽名的尺寸，一列三個排版
+            let attendeesHtml = '<div class="grid grid-cols-3 gap-3 mt-2">';
             payload.attendees.forEach((p, idx) => {
                 attendeesHtml += `
                     <div class="border border-slate-200 rounded p-1 text-center bg-slate-50 avoid-break">
-                        <img src="${p.sign}" class="print-sign w-full h-10 object-contain mb-1 bg-white border border-slate-100">
+                        <img src="${p.sign}" class="print-sign w-full h-12 object-contain mb-1 bg-white border border-slate-100">
                         <div class="text-[9px] text-slate-500 font-bold">簽署人員 ${idx + 1}</div>
                     </div>`;
             });
             attendeesHtml += '</div>';
 
-            // 🌟 將現場照片高度縮小，使其更緊湊
+            // 🌟 縮小照片的高度，避免照片太大強迫自己跳一頁
             let photoHtml = '';
             if(payload.photo) {
                 photoHtml = `
@@ -566,67 +565,73 @@
                 </div>`;
             }
 
+            // 🌟 將內容拆分在多個 <tr><td> 中，這是讓瀏覽器允許中途換頁的唯一秘訣
             reportTbody.innerHTML = `
                 <tr>
-                    <td class="px-6 py-4">
-                        <div class="avoid-break mb-4">
-                            <table class="w-full text-xs border-collapse border border-slate-300">
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-1/4">作業單位</td>
-                                    <td class="border border-slate-300 p-1.5 w-1/4">${payload.unit}</td>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-1/4">日期時間</td>
-                                    <td class="border border-slate-300 p-1.5 w-1/4">${payload.datetime}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
-                                    <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
-                                    <td class="border border-slate-300 p-1.5">${payload.location}</td>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
-                                    <td class="border border-slate-300 p-1.5">${payload.content}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
-                                    <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
-                                    <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
-                                    <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
-                                </tr>
-                            </table>
-                        </div>
-
-                        <div class="allow-break mb-4">
-                            <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
-                            <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
-                        </div>
-
-                        <div class="avoid-break mb-4 flex justify-between border-t border-slate-200 pt-3">
-                            <div class="w-1/3">
-                                <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
-                                <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start">
-                                    <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="avoid-break mb-4">
-                            <div class="bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2">
-                                <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
-                                <div class="text-[9px] text-indigo-700 font-bold mt-0.5">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
-                            </div>
-                            ${attendeesHtml}
-                        </div>
-
-                        ${photoHtml}
+                    <td class="pt-4 pb-2">
+                        <table class="w-full text-xs border-collapse border border-slate-300 avoid-break">
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
+                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
+                                <td class="border border-slate-300 p-1.5">${payload.location}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
+                                <td class="border border-slate-300 p-1.5">${payload.content}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
+                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
+                <tr>
+                    <td class="pt-2 pb-2 allow-break">
+                        <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
+                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        <div class="border-t border-slate-200 pt-3">
+                            <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
+                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-1/3">
+                                <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        <div class="bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2 mt-2">
+                            <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
+                            <div class="text-[9px] text-indigo-700 font-bold mt-0.5">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
+                        </div>
+                        ${attendeesHtml}
+                    </td>
+                </tr>
+                ${payload.photo ? `
+                <tr>
+                    <td class="pt-2 pb-2 avoid-break">
+                        ${photoHtml}
+                    </td>
+                </tr>` : ''}
             `;
         }
 
