@@ -21,6 +21,9 @@
         .chip-checkbox:checked + .chip-label { background-color: #0f3460; color: white; border-color: #0f3460; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .chip-danger:checked + .chip-label { background-color: #ef4444; border-color: #ef4444; }
         .chip-safe:checked + .chip-label { background-color: #10b981; border-color: #10b981; }
+        
+        /* 隱藏真實的上傳按鈕，用美化的按鈕取代 */
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body class="pb-20 text-slate-800">
@@ -36,23 +39,7 @@
 
     <main class="max-w-3xl mx-auto mt-4 px-4 space-y-4">
         
-        <!-- 🌟 區塊 1：勤前宣導確認事項 (改為純文字顯示) -->
-        <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden mb-4">
-            <div class="bg-blue-50 px-4 py-2 border-b border-blue-100 font-bold text-blue-700 flex items-center">
-                <i class="fa-solid fa-bullhorn mr-2"></i>勤前宣導確認事項
-            </div>
-            <div class="p-4 space-y-3 text-sm text-slate-600 bg-slate-50/50">
-                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">人員狀況：</span>作業人員無身體不適、暈眩、疲勞或其他影響安全作業之情形；不得酒後作業。</div></div>
-                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">操作資格：</span>高空工作車、吊籠等設備操作人員具備相應資格，並於作業前完成設備檢點。</div></div>
-                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">作業環境：</span>作業前確認地面、動線、照明、天候等狀況；異常時應先改善或停止作業。</div></div>
-                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">區域管制：</span>依需求設置交通錐、連桿、警示帶，避免無關人員及車輛進入作業範圍。</div></div>
-                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">高風險通報：</span>高風險作業前應完成通報，並依規定至園區施工平台完成進場及退場打卡。</div></div>
-            </div>
-            <!-- 隱藏的輸入框，用於送出資料時將這些宣導內容存入資料庫 -->
-            <input type="hidden" id="t-briefing" value="已確認人員狀況、操作資格、作業環境、區域管制與高風險通報等事項。">
-        </div>
-
-        <!-- 區塊 2：基本資訊 -->
+        <!-- 區塊 1：基本資訊 -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-list-check mr-2"></i>作業基本資訊</div>
             <div class="p-4 space-y-4 text-sm">
@@ -101,16 +88,30 @@
             </div>
         </div>
 
-        <!-- 區塊 3：危害告知 (動態讀取 Excel) -->
+        <!-- 🌟 區塊 2：勤前宣導 (移至危害告知上方) -->
+        <div class="bg-white rounded-xl shadow-sm border border-blue-200 overflow-hidden">
+            <div class="bg-blue-50 px-4 py-2 border-b border-blue-100 font-bold text-blue-700 flex items-center">
+                <i class="fa-solid fa-bullhorn mr-2"></i>勤前宣導確認事項
+            </div>
+            <div class="p-4 space-y-3 text-sm text-slate-600 bg-slate-50/50">
+                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">人員狀況：</span>作業人員無身體不適、暈眩、疲勞或其他影響安全作業之情形；不得酒後作業。</div></div>
+                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">操作資格：</span>高空工作車、吊籠等設備操作人員具備相應資格，並於作業前完成設備檢點。</div></div>
+                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">作業環境：</span>作業前確認地面、動線、照明、天候等狀況；異常時應先改善或停止作業。</div></div>
+                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">區域管制：</span>依需求設置交通錐、連桿、警示帶，避免無關人員及車輛進入作業範圍。</div></div>
+                <div class="flex items-start"><i class="fa-solid fa-circle-check text-blue-500 mt-1 mr-2 shrink-0"></i><div><span class="font-bold text-slate-700">高風險通報：</span>高風險作業前應完成通報，並依規定至園區施工平台完成進場及退場打卡。</div></div>
+            </div>
+        </div>
+
+        <!-- 區塊 3：危害告知與對策 -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-red-50 px-4 py-2 border-b border-red-100 font-bold text-red-700 flex justify-between items-center">
                 <div><i class="fa-solid fa-triangle-exclamation mr-2"></i>危害告知與對策</div>
                 <span id="db-status" class="text-[10px] text-red-400 font-normal"><i class="fa-solid fa-arrows-rotate fa-spin"></i> 同步資料庫中</span>
             </div>
-            <div class="p-4 space-y-4 text-sm">
+            <div class="p-4 space-y-5 text-sm">
                 
                 <div>
-                    <label class="block text-slate-500 mb-1 font-bold">準備防護設備 (可複選)</label>
+                    <label class="block text-slate-500 mb-2 font-bold">準備防護設備 (可複選)</label>
                     <div id="cg-ppe" class="mb-2">
                         <input type="checkbox" id="ppe-1" value="反光背心" class="chip-checkbox chip-safe"><label for="ppe-1" class="chip-label">反光背心</label>
                         <input type="checkbox" id="ppe-2" value="安全帽" class="chip-checkbox chip-safe"><label for="ppe-2" class="chip-label">安全帽</label>
@@ -126,8 +127,8 @@
                 </div>
 
                 <div>
-                    <label class="block text-slate-500 mb-1 font-bold">可能危害因素 (勾選後自動帶入 Excel 對策)</label>
-                    <div id="cg-hazards" class="mb-2">
+                    <label class="block text-slate-500 mb-2 font-bold">可能危害因素 (勾選後自動帶入對策)</label>
+                    <div id="cg-hazards" class="mb-2 border-b border-dashed border-slate-200 pb-4">
                         <input type="checkbox" id="hz-1" value="滑倒/跌倒" class="chip-checkbox chip-danger" onchange="generatePreventions()"><label for="hz-1" class="chip-label">滑倒/跌倒</label>
                         <input type="checkbox" id="hz-2" value="墜落/滾落" class="chip-checkbox chip-danger" onchange="generatePreventions()"><label for="hz-2" class="chip-label">墜落/滾落</label>
                         <input type="checkbox" id="hz-3" value="缺氧/中毒" class="chip-checkbox chip-danger" onchange="generatePreventions()"><label for="hz-3" class="chip-label">缺氧/中毒</label>
@@ -145,14 +146,32 @@
                     </div>
                 </div>
 
+                <!-- 🌟 優化：將對策框改為不帶邊框的底色區塊，更像報告書 -->
                 <div>
-                    <label class="block text-slate-500 mb-1 font-bold">危害防止對策</label>
-                    <textarea id="t-preventions" rows="8" class="w-full border border-slate-300 rounded p-3 text-xs leading-relaxed bg-yellow-50 text-slate-700" placeholder="等待勾選自動帶入..."></textarea>
+                    <label class="block text-[#0f3460] mb-2 font-bold"><i class="fa-solid fa-shield-halved mr-1"></i> 危害防止對策</label>
+                    <textarea id="t-preventions" rows="10" class="w-full rounded-lg p-4 text-xs leading-relaxed bg-[#f8faff] text-slate-700 shadow-inner focus:outline-none" style="border: 1px solid #e2e8f0; resize: none;" placeholder="等待勾選上方危害因素，將自動帶入對策..."></textarea>
                 </div>
             </div>
         </div>
 
-        <!-- 區塊 4：主管簽名 -->
+        <!-- 🌟 新增：區塊 4 - 現場照片 -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片</div>
+            <div class="p-4 flex flex-col items-center">
+                <!-- 預覽框 -->
+                <div id="photo-preview" class="w-full h-40 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-3">
+                    <span class="text-slate-400 text-sm"><i class="fa-regular fa-image text-3xl mb-1 block text-center"></i>尚未上傳照片</span>
+                </div>
+                
+                <!-- 美化的上傳按鈕，呼叫隱藏的 input -->
+                <label class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-bold py-2 px-4 rounded-lg cursor-pointer transition-colors w-full text-center">
+                    <i class="fa-solid fa-camera-retro mr-1"></i> 點擊拍攝或選擇照片
+                    <input type="file" id="t-photo" accept="image/*" capture="environment" onchange="previewImage(event)">
+                </label>
+            </div>
+        </div>
+
+        <!-- 區塊 5：主管簽名 -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-yellow-50 px-4 py-2 border-b border-yellow-100 font-bold text-yellow-800"><i class="fa-solid fa-pen-clip mr-2"></i>現場作業主管簽名</div>
             <div class="p-4">
@@ -163,7 +182,7 @@
             </div>
         </div>
 
-        <!-- 區塊 5：參與人員簽名 -->
+        <!-- 區塊 6：參與人員簽名 -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="bg-indigo-50 px-4 py-2 border-b border-indigo-100 font-bold text-indigo-800 flex justify-between items-center">
                 <span><i class="fa-solid fa-users mr-2"></i>參與人員簽到</span>
@@ -180,16 +199,14 @@
     </main>
 
     <script>
-        // ⚠️ 請確認這是您剛剛發布的新版 API 網址
-        const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
+        // ⚠️ 請替換為您更新後的 API 網址
+        const API_URL = "https://script.google.com/macros/s/您的API網址/exec";
         
         let attendeeCount = 0;
-        let globalPreventionRules = {}; // 用來存放從 Excel 抓下來的對策字典
+        let globalPreventionRules = {}; 
+        let photoBase64 = ""; // 存放照片編碼
 
-        // 🌟 輔助函數：將字串去除所有空格與標點符號，方便精準比對
-        function cleanString(str) {
-            return String(str).replace(/[\s、/／\(\)（）]/g, '').toLowerCase();
-        }
+        function cleanString(str) { return String(str).replace(/[\s、/／\(\)（）]/g, '').toLowerCase(); }
 
         document.addEventListener('DOMContentLoaded', () => {
             const now = new Date();
@@ -198,42 +215,55 @@
             
             initSignaturePad('canvas-supervisor');
             addAttendee(); 
-            
-            // 載入時去抓 Excel 對策
             fetchPreventionRules();
         });
 
-        // 透過 API 抓取 Excel 裡的對策清單
         async function fetchPreventionRules() {
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
-                    // 將 Excel 的資料存入字典，並使用「去除標點符號的乾淨字串」當作 Key
                     let rawData = result.data;
-                    for (let key in rawData) {
-                        globalPreventionRules[cleanString(key)] = rawData[key];
-                    }
-                    document.getElementById('db-status').innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i> 危害對策庫已同步';
+                    for (let key in rawData) { globalPreventionRules[cleanString(key)] = rawData[key]; }
+                    document.getElementById('db-status').innerHTML = '<i class="fa-solid fa-circle-check text-green-500"></i> 對策庫已同步';
                 }
             } catch (error) {
-                document.getElementById('db-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-orange-500"></i> 同步失敗, 採預設模式';
+                document.getElementById('db-status').innerHTML = '<i class="fa-solid fa-triangle-exclamation text-orange-500"></i> 同步失敗';
             }
         }
 
-        // 🌟 核心升級：根據勾選的危害因素，用「乾淨字串」去比對 Excel 資料庫帶入對策
+        // 🌟 產生對策時，加入美化樣式符號
         function generatePreventions() {
             const hazards = getCheckedValues('cg-hazards');
             let resultText = "【通用規範】現場主管已向作業人員說明本次作業內容、危害因素、安全作業方法及緊急應變方式。\n";
             
             hazards.forEach(hz => {
                 let cleanHz = cleanString(hz);
-                // 用處理過的字串去比對，這樣 "滑倒/跌倒" 就能完美對上 Excel 裡的 "滑倒跌倒" 或 "滑倒/跌倒"
                 if (globalPreventionRules[cleanHz]) {
-                    resultText += `\n【${hz}】\n${globalPreventionRules[cleanHz]}\n`;
+                    resultText += `\n✦【${hz}】\n${globalPreventionRules[cleanHz]}\n`;
                 }
             });
             document.getElementById('t-preventions').value = resultText;
+            
+            // 自動調整文字框高度
+            const textarea = document.getElementById('t-preventions');
+            textarea.style.height = "auto";
+            textarea.style.height = (textarea.scrollHeight) + "px";
+        }
+
+        // 🌟 處理照片上傳與預覽
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoBase64 = e.target.result; // 存下 Base64 編碼，準備傳給後端
+                const preview = document.getElementById('photo-preview');
+                preview.innerHTML = `<img src="${photoBase64}" class="w-full h-full object-contain">`;
+            }
+            // 由於手機拍照的檔案通常很大，實務上可在此加入壓縮圖片的邏輯
+            reader.readAsDataURL(file); 
         }
 
         function getCheckedValues(containerId) {
@@ -320,9 +350,6 @@
             
             let ppeArr = getCheckedValues('cg-ppe');
             let hazardsArr = getCheckedValues('cg-hazards');
-            
-            // 抓取隱藏的勤前宣導字串
-            let briefingText = document.getElementById('t-briefing').value;
 
             const meetingId = "TBM-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + Math.floor(Math.random()*10000);
             
@@ -334,11 +361,11 @@
                 location: fullLocation,
                 content: contentArr.join('、'),
                 tools: toolsArr.join('、'),
-                briefing: briefingText, 
                 ppe: ppeArr.join('、'),
                 hazards: hazardsArr.join('、'),
                 preventions: document.getElementById('t-preventions').value,
                 supervisorSign: document.getElementById('canvas-supervisor').toDataURL('image/png'),
+                photo: photoBase64, // 🌟 傳送照片編碼
                 attendees: []
             };
 
@@ -371,7 +398,7 @@
                 
                 const result = await response.json();
                 if(result.status === 'success') {
-                    alert("✅ 會議紀錄與簽名已成功送出！");
+                    alert("✅ 會議紀錄與相片已成功送出！");
                     window.location.reload(); 
                 } else {
                     throw new Error(result.message);
