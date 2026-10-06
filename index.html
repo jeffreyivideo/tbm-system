@@ -24,11 +24,20 @@
         input[type="file"] { display: none; }
         .canvas-locked { background-color: #f1f5f9; cursor: not-allowed; pointer-events: none; opacity: 0.7; }
         
-        /* 🌟 列印與報表專用樣式 */
+        /* 🌟 列印專用樣式：利用 table header 來達成跨頁重複標題 */
         @media print {
             body { background-color: white; overscroll-behavior-y: auto; }
             .no-print { display: none !important; }
-            .print-container { margin: 0; padding: 0; box-shadow: none; border: none; max-width: 100%; }
+            .print-container { margin: 0; padding: 0; box-shadow: none; border: none; max-width: 100%; display: block; }
+            
+            /* 讓表格的 thead 在每一頁的最上方重複印出 */
+            table { page-break-inside: auto; width: 100%; border-collapse: collapse; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            
+            /* 確保照片與簽名不會被切斷 */
+            .avoid-break { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -72,8 +81,9 @@
                             <input type="checkbox" id="loc-3" value="第三航廈" class="chip-checkbox"><label for="loc-3" class="chip-label">第三航廈</label>
                         </div>
                         <div class="flex items-center">
-                            <span class="text-slate-500 font-bold mr-2 whitespace-nowrap">區域：</span>
-                            <input type="text" id="t-location-detail" placeholder="請填寫詳細區域 (如: 管制南、出境大廳)" class="w-full border border-slate-300 rounded p-2 text-xs">
+                            <!-- 🌟 強調區域必填 -->
+                            <span class="text-slate-500 font-bold mr-2 whitespace-nowrap">區域 <span class="text-red-500">*</span></span>
+                            <input type="text" id="t-location-detail" placeholder="請務必填寫詳細區域 (如: 管制南)" class="w-full border border-slate-300 rounded p-2 text-xs">
                         </div>
                     </div>
 
@@ -83,9 +93,11 @@
                             <input type="radio" id="cnt-1" name="taskContent" value="洗地打蠟作業" class="chip-checkbox"><label for="cnt-1" class="chip-label">洗地打蠟作業</label>
                             <input type="radio" id="cnt-2" name="taskContent" value="高空作業" class="chip-checkbox"><label for="cnt-2" class="chip-label">高空作業</label>
                             <input type="radio" id="cnt-3" name="taskContent" value="道路作業" class="chip-checkbox"><label for="cnt-3" class="chip-label">道路作業</label>
-                            <input type="radio" id="cnt-4" name="taskContent" value="一般清潔、除塵、保養作業" class="chip-checkbox"><label for="cnt-4" class="chip-label">一般清潔/除塵/保養</label>
+                            <input type="radio" id="cnt-4" name="taskContent" value="一般清潔、除塵、保養作業" class="chip-checkbox"><label for="cnt-4" class="chip-label">一般清潔/保養</label>
+                            <!-- 🌟 新增「其他」選項按鈕 -->
+                            <input type="radio" id="cnt-5" name="taskContent" value="其他" class="chip-checkbox"><label for="cnt-5" class="chip-label">其他</label>
                         </div>
-                        <input type="text" id="t-content-other" placeholder="其他作業內容補充" class="w-full border border-slate-300 rounded p-2 text-xs">
+                        <input type="text" id="t-content-other" placeholder="若點選「其他」，請在此補充作業內容" class="w-full border border-slate-300 rounded p-2 text-xs">
                     </div>
 
                     <div>
@@ -99,8 +111,8 @@
                             <input type="checkbox" id="tl-6" value="晶化機" class="chip-checkbox"><label for="tl-6" class="chip-label">晶化機</label>
                             <input type="checkbox" id="tl-7" value="高壓沖洗機" class="chip-checkbox"><label for="tl-7" class="chip-label">高壓沖洗機</label>
                             <input type="checkbox" id="tl-8" value="貨車" class="chip-checkbox"><label for="tl-8" class="chip-label">貨車</label>
-                            <input type="checkbox" id="tl-9" value="高空工作車-直臂式" class="chip-checkbox"><label for="tl-9" class="chip-label">高空工作車-直臂式</label>
-                            <input type="checkbox" id="tl-10" value="高空工作車-剪刀式" class="chip-checkbox"><label for="tl-10" class="chip-label">高空工作車-剪刀式</label>
+                            <input type="checkbox" id="tl-9" value="高空工作車-直臂式" class="chip-checkbox"><label for="tl-9" class="chip-label">高空車-直臂式</label>
+                            <input type="checkbox" id="tl-10" value="高空工作車-剪刀式" class="chip-checkbox"><label for="tl-10" class="chip-label">高空車-剪刀式</label>
                             <input type="checkbox" id="tl-11" value="升降平台" class="chip-checkbox"><label for="tl-11" class="chip-label">升降平台</label>
                             <input type="checkbox" id="tl-12" value="一般工具" class="chip-checkbox"><label for="tl-12" class="chip-label">一般工具</label>
                         </div>
@@ -177,7 +189,8 @@
 
             <!-- 區塊 4：現場照片 -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片</div>
+                <!-- 🌟 強調照片必填 -->
+                <div class="bg-slate-50 px-4 py-2 border-b border-slate-100 font-bold text-[#0f3460]"><i class="fa-solid fa-camera mr-2"></i>現場會議照片 <span class="text-red-500">*</span></div>
                 <div class="p-4 flex flex-col items-center">
                     <div id="photo-preview" class="w-full h-48 border-2 border-dashed border-slate-300 rounded-lg bg-slate-50 flex items-center justify-center overflow-hidden mb-3 relative">
                         <span class="text-slate-400 text-sm"><i class="fa-regular fa-image text-3xl mb-1 block text-center"></i>尚未上傳照片</span>
@@ -216,10 +229,31 @@
         </main>
     </div>
 
-    <!-- 🌟 結案報表區塊 (預設隱藏，送出後顯示) -->
+    <!-- 🌟 結案報表區塊 -->
     <div id="report-section" class="hidden max-w-4xl mx-auto mt-4 px-4 pb-20 print-container">
-        <!-- 報表內容將由 JavaScript 動態生成注入 -->
-        <div id="report-content" class="bg-white p-6 shadow-lg rounded-xl border border-slate-200"></div>
+        
+        <!-- 🌟 利用 table 結構來達成跨頁標題重複 -->
+        <table class="w-full border-collapse">
+            <thead>
+                <tr>
+                    <td class="pb-6">
+                        <div class="text-center border-b-2 border-[#0f3460] pb-2">
+                            <h2 class="text-2xl font-bold text-[#0f3460] tracking-wider">信實集團 工具箱安全會議暨危害告知單</h2>
+                            <p class="text-sm text-slate-500 font-bold mt-1" id="report-meeting-id">會議編號：</p>
+                        </div>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <div id="report-content" class="bg-white p-6 shadow-lg rounded-xl border border-slate-200" style="box-shadow: none; border: none; padding: 0;">
+                            <!-- 報表內容注入區 -->
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
         
         <!-- 列印與重新填寫按鈕 (列印時隱藏) -->
         <div class="mt-6 flex space-x-4 no-print">
@@ -350,13 +384,11 @@
                     tempImg = new Image();
                     tempImg.src = canvas.toDataURL();
                 }
-
                 const rect = canvas.getBoundingClientRect();
                 canvas.width = rect.width; canvas.height = rect.height;
                 ctx.lineWidth = 4; 
                 ctx.lineCap = 'round'; 
                 ctx.strokeStyle = '#0f3460';
-
                 if(tempImg) {
                     tempImg.onload = function() { ctx.drawImage(tempImg, 0, 0, canvas.width, canvas.height); }
                 }
@@ -456,10 +488,8 @@
                 alert("請先簽名後再點擊確認！");
                 return;
             }
-            
             const canvas = document.getElementById(`canvas-${id}`);
             canvas.classList.add('canvas-locked');
-            
             document.getElementById(`controls-${id}`).classList.add('hidden');
             document.getElementById(`locked-msg-${id}`).classList.remove('hidden');
             document.getElementById(id).classList.add('is-confirmed');
@@ -478,43 +508,38 @@
             document.getElementById('attendee-counter').innerText = `已簽署: ${confirmedAttendees} 人`;
         }
 
-        // 🌟 產生結案報表畫面
         function renderReport(payload) {
-            document.getElementById('form-section').classList.add('hidden'); // 隱藏填寫區
+            document.getElementById('form-section').classList.add('hidden'); 
             const reportSection = document.getElementById('report-section');
             const reportContent = document.getElementById('report-content');
-            reportSection.classList.remove('hidden'); // 顯示報表區
+            
+            document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
+            
+            reportSection.classList.remove('hidden'); 
             window.scrollTo(0, 0);
 
-            // 產生所有參與人員簽名的圖片網格
+            // 確保簽名區塊排版在列印時不會被切斷 (avoid-break)
             let attendeesHtml = '<div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">';
             payload.attendees.forEach((p, idx) => {
                 attendeesHtml += `
-                    <div class="border border-slate-200 rounded p-2 text-center bg-slate-50">
-                        <img src="${p.sign}" class="w-full h-16 object-contain mb-1 bg-white border border-slate-100">
-                        <div class="text-[10px] text-slate-500">簽署者 ${idx + 1}</div>
+                    <div class="border border-slate-200 rounded p-2 text-center bg-slate-50 avoid-break">
+                        <img src="${p.sign}" class="w-full h-20 object-contain mb-1 bg-white border border-slate-100">
+                        <div class="text-[10px] text-slate-500 font-bold">簽署人員 ${idx + 1}</div>
                     </div>`;
             });
             attendeesHtml += '</div>';
 
-            // 現場照片顯示邏輯
             let photoHtml = '';
             if(payload.photo) {
                 photoHtml = `
-                <div class="mt-4 border-t-2 border-slate-800 pt-4">
+                <div class="mt-6 border-t-2 border-slate-800 pt-4 avoid-break">
                     <h3 class="font-bold text-slate-800 mb-2">📸 現場會議照片</h3>
-                    <img src="${payload.photo}" class="w-full max-h-64 object-cover rounded border border-slate-200">
+                    <img src="${payload.photo}" class="w-full max-h-80 object-cover rounded border border-slate-200">
                 </div>`;
             }
 
-            // 報表 HTML 排版
             reportContent.innerHTML = `
-                <div class="text-center mb-6 pb-4 border-b-2 border-[#0f3460]">
-                    <h2 class="text-2xl font-bold text-[#0f3460] tracking-wider mb-1">信實集團 工具箱安全會議暨危害告知單</h2>
-                    <p class="text-sm text-slate-500 font-bold">會議編號：${payload.meetingId}</p>
-                </div>
-                
-                <table class="w-full text-sm border-collapse border border-slate-300 mb-6">
+                <table class="w-full text-sm border-collapse border border-slate-300 mb-6 avoid-break">
                     <tr>
                         <td class="border border-slate-300 p-2 font-bold bg-slate-100 w-1/4">作業單位</td>
                         <td class="border border-slate-300 p-2 w-1/4">${payload.unit}</td>
@@ -545,21 +570,19 @@
                     </tr>
                 </table>
 
-                <div class="mb-6">
+                <div class="mb-6 avoid-break">
                     <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2">安全防護對策與宣導</h3>
                     <div class="text-xs text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
                 </div>
 
-                <div class="border-t-2 border-slate-800 pt-4 mb-6 flex justify-between items-end">
-                    <div class="w-1/2 pr-4">
-                        <h3 class="font-bold text-slate-800 mb-2">現場作業主管簽名</h3>
-                        <div class="border border-slate-200 bg-slate-50 rounded p-2 h-24 flex items-center justify-center">
-                            <img src="${payload.supervisorSign}" class="max-h-full max-w-full">
-                        </div>
+                <div class="border-t-2 border-slate-800 pt-4 mb-6 avoid-break">
+                    <h3 class="font-bold text-slate-800 mb-2">現場作業主管簽名</h3>
+                    <div class="border border-slate-200 bg-slate-50 rounded p-2 h-24 flex items-center justify-start w-1/2">
+                        <img src="${payload.supervisorSign}" class="max-h-full max-w-full">
                     </div>
                 </div>
 
-                <div>
+                <div class="avoid-break">
                     <h3 class="font-bold text-slate-800 bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2">參與人員簽署確認清單</h3>
                     ${attendeesHtml}
                 </div>
@@ -582,17 +605,25 @@
             
             let locMainArr = getCheckedValues('cg-location');
             let locDetail = document.getElementById('t-location-detail').value;
-            if(locMainArr.length === 0 && !locDetail) return alert("❌ 請至少勾選一項「作業位置」或填寫區域！");
+            // 🌟 防呆：作業區域必須填寫
+            if(!locDetail.trim()) return alert("❌ 請務必填寫「詳細區域」！");
 
             let contentMain = getRadioValue('taskContent');
             let contentOther = document.getElementById('t-content-other').value;
-            if(!contentMain && !contentOther) return alert("❌ 請點選「作業內容」或補充其他內容！");
+            // 🌟 防呆：如果勾選其他，必須輸入內容
+            if(contentMain === "其他" && !contentOther.trim()) {
+                return alert("❌ 您點選了作業內容為「其他」，請在下方補充詳細內容！");
+            }
+            if(!contentMain && !contentOther) return alert("❌ 請點選「作業內容」！");
             
             let toolsArr = getCheckedValues('cg-tools');
             if(toolsArr.length === 0 && !document.getElementById('t-tools-other').value) return alert("❌ 請至少勾選一項「機具設備」或補充其他工具！");
 
             const hazardsArr = getCheckedValues('cg-hazards');
             if(hazardsArr.length === 0) return alert("❌ 請至少勾選一項「可能危害因素」！");
+
+            // 🌟 防呆：照片必須上傳
+            if(!photoBase64) return alert("❌ 請務必上傳「現場會議照片」才能送出！");
 
             if(isCanvasEmpty('canvas-supervisor')) return alert("❌ 「現場作業主管」尚未簽名！");
 
@@ -609,16 +640,16 @@
                 }
             });
 
-            // 🌟 核心防呆：檢查確認簽名數量與填寫人數是否一致
             const expectedCount = parseInt(peopleCount, 10);
             if(validAttendees.length !== expectedCount) {
-                return alert(`❌ 人數不符警報！\n\n您在上方填寫的作業人數為【 ${expectedCount} 人 】，\n但下方實際點擊「確認並鎖定」的簽名僅有【 ${validAttendees.length} 人 】。\n\n請確認所有師傅皆已完成簽署，或修改上方的作業人數。`);
+                return alert(`❌ 人數不符警報！\n\n您填寫的作業人數為【 ${expectedCount} 人 】，\n但確認簽名的只有【 ${validAttendees.length} 人 】。\n請確認簽署完畢或修改人數。`);
             }
 
             let fullLocation = locMainArr.join('、');
-            if(locDetail) fullLocation += (fullLocation ? ` - ${locDetail}` : locDetail);
+            fullLocation += (fullLocation ? ` - ${locDetail}` : locDetail);
 
-            let fullContent = contentMain ? (contentOther ? `${contentMain}、${contentOther}` : contentMain) : contentOther;
+            let fullContent = contentMain ? (contentMain === "其他" ? contentOther : (contentOther ? `${contentMain}、${contentOther}` : contentMain)) : contentOther;
+            
             if(document.getElementById('t-tools-other').value) toolsArr.push(document.getElementById('t-tools-other').value);
             
             let ppeArr = getCheckedValues('cg-ppe');
@@ -657,7 +688,6 @@
                 const result = await response.json();
                 if(result.status === 'success') {
                     alert(`✅ 會議紀錄送出成功！`);
-                    // 🌟 送出成功後，隱藏表單，顯示精美的結案報表！
                     renderReport(payload);
                 } else {
                     throw new Error(result.message);
