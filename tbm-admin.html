@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>工具箱會議總後台 | 信實集團</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { font-family: 'Noto Sans TC', sans-serif; }
+        body { background-color: #f4f7f9; }
+        
+        /* 隱藏捲軸但可滾動 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 🌟 列印報表專屬 CSS (與前台完全一致) */
+        @media print {
+            @page { margin: 0 !important; size: A4 portrait; }
+            body { background-color: white !important; margin: 0 !important; padding: 1cm 1.5cm !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .no-print { display: none !important; }
+            
+            #report-section { display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; max-width: none !important; }
+            
+            table.print-layout { display: table !important; width: 100% !important; border-collapse: collapse !important; page-break-inside: auto !important; }
+            table.print-layout > thead { display: table-header-group !important; }
+            table.print-layout > tbody { display: table-row-group !important; }
+            table.print-layout tr { page-break-inside: avoid; page-break-after: auto; }
+            table.print-layout tr.allow-break { page-break-inside: auto !important; }
+            
+            .avoid-break { page-break-inside: avoid !important; break-inside: avoid !important; }
+            .print-photo { max-width: 100% !important; max-height: 220px !important; object-fit: contain; }
+            .print-sign { max-height: 40px !important; object-fit: contain; }
+        }
+    </style>
+</head>
+<body class="text-slate-800">
+
+    <!-- 頂部與背景設計 (呼應您的 Hub) -->
+    <div class="bg-[#0f3460] h-64 w-full absolute top-0 left-0 z-0 rounded-b-[40px] no-print"></div>
+
+    <div class="relative z-10 max-w-5xl mx-auto px-4 py-8 no-print" id="dashboard-view">
+        
+        <!-- Header -->
+        <div class="flex flex-col items-center mb-8 text-white">
+            <div class="bg-white w-16 h-12 rounded-xl flex items-center justify-center mb-4 shadow-md relative overflow-hidden">
+                <div class="w-[85%] h-[60%] border-[3px] border-[#0f3460] rounded-[100%] flex items-center justify-center absolute">
+                    <span class="text-[#0f3460] font-bold italic text-[10px] tracking-tighter" style="font-family: Arial, sans-serif;">sincere</span>
+                </div>
+            </div>
+            <h1 class="text-2xl font-bold tracking-widest">工具箱會議總後台</h1>
+            <p class="text-sm text-indigo-200 mt-1">TBM MANAGEMENT PORTAL</p>
+        </div>
+
+        <!-- 數據儀表板 -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-100 pb-3">
+                <h2 class="text-lg font-bold text-[#0f3460]"><i class="fa-solid fa-folder-open mr-2"></i>會議紀錄清單</h2>
+                <button onclick="fetchRecords()" class="text-sm bg-indigo-50 text-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-100 transition-colors font-bold">
+                    <i class="fa-solid fa-arrows-rotate mr-1"></i> 重新整理
+                </button>
+            </div>
+            
+            <div id="loading-state" class="text-center py-10">
+                <i class="fa-solid fa-spinner fa-spin text-4xl text-indigo-300 mb-3"></i>
+                <p class="text-slate-500 font-bold">資料載入中，請稍候...</p>
+            </div>
+
+            <!-- 清單列表 -->
+            <div class="overflow-x-auto no-scrollbar">
+                <table class="w-full text-sm text-left hidden" id="records-table">
+                    <thead class="text-xs text-slate-500 uppercase bg-slate-50">
+                        <tr>
+                            <th class="px-4 py-3 rounded-tl-lg">日期時間</th>
+                            <th class="px-4 py-3">會議編號</th>
+                            <th class="px-4 py-3">作業名稱</th>
+                            <th class="px-4 py-3">作業位置</th>
+                            <th class="px-4 py-3 rounded-tr-lg text-center">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="records-tbody" class="divide-y divide-slate-100">
+                        <!-- 資料動態產生 -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div id="empty-state" class="hidden text-center py-10 text-slate-400">
+                <i class="fa-solid fa-inbox text-4xl mb-3"></i>
+                <p>目前尚無任何會議紀錄</p>
+            </div>
+        </div>
+        
+        <div class="text-center">
+            <a href="index.html" class="text-slate-100 hover:text-white underline text-sm"><i class="fa-solid fa-arrow-left mr-1"></i> 返回前台填寫頁面</a>
+        </div>
+    </div>
+
+    <!-- 🌟 結案報表預覽區塊 (預設隱藏) -->
+    <div id="report-section" class="hidden no-print max-w-4xl mx-auto px-4 py-8">
+        
+        <div class="mb-4 no-print flex justify-between items-center">
+            <button onclick="closeReport()" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg font-bold hover:bg-slate-300 transition-colors">
+                <i class="fa-solid fa-arrow-left mr-1"></i> 返回清單
+            </button>
+            <button onclick="window.print()" class="bg-[#0f3460] text-white px-6 py-2 rounded-lg font-bold hover:bg-indigo-900 transition-colors shadow-md">
+                <i class="fa-solid fa-print mr-1"></i> 列印 / 下載 PDF
+            </button>
+        </div>
+
+        <div class="bg-white p-2 shadow-lg rounded-xl border border-slate-200" id="report-wrapper">
+            <!-- 報表結構 (採用 table>thead 強制換頁設計) -->
+            <table class="print-layout w-full">
+                <thead>
+                    <tr>
+                        <td style="padding-top: 15px; padding-bottom: 15px; border-bottom: 2px solid #0f3460;">
+                            <div style="text-align: center;">
+                                <h2 style="font-size: 24px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0;">信實集團 工具箱安全會議暨危害告知單</h2>
+                                <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id"></p>
+                            </div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="report-tbody">
+                    <!-- 內容動態注入 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // ⚠️ 請務必替換為您最新部署的 API 網址！
+        const API_URL = "https://script.google.com/macros/s/AKfycbwUObPOhhhql6NLjxVouFSxXNgxYezeOasie4gWellTDu_iH1oQbKP_x1qqRyUeZcF3/exec";
+        
+        let allRecords = []; // 暫存所有抓下來的資料
+
+        document.addEventListener('DOMContentLoaded', fetchRecords);
+
+        async function fetchRecords() {
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('records-table').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            
+            try {
+                // 加上 ?action=getRecords 來觸發我們剛寫的後台專屬邏輯
+                const response = await fetch(`${API_URL}?action=getRecords`);
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    allRecords = result.data;
+                    renderTable();
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                alert("資料讀取失敗：" + error);
+                document.getElementById('loading-state').classList.add('hidden');
+            }
+        }
+
+        function renderTable() {
+            document.getElementById('loading-state').classList.add('hidden');
+            const tbody = document.getElementById('records-tbody');
+            tbody.innerHTML = '';
+
+            if(allRecords.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            }
+
+            allRecords.forEach((record, index) => {
+                // 格式化日期
+                const dt = new Date(record.datetime);
+                const dateStr = `${dt.getFullYear()}/${String(dt.getMonth()+1).padStart(2,'0')}/${String(dt.getDate()).padStart(2,'0')} ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-slate-700 whitespace-nowrap">${dateStr}</td>
+                    <td class="px-4 py-3 text-slate-500 font-mono text-xs">${record.meetingId}</td>
+                    <td class="px-4 py-3 font-bold text-[#0f3460]">${record.taskName}</td>
+                    <td class="px-4 py-3 text-slate-600">${record.location}</td>
+                    <td class="px-4 py-3 text-center">
+                        <button onclick="viewReport(${index})" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded text-xs font-bold transition-colors">
+                            <i class="fa-solid fa-file-pdf mr-1"></i>預覽/列印
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+            document.getElementById('records-table').classList.remove('hidden');
+        }
+
+        // 🌟 點擊按鈕後，呼叫與前台完全相同的渲染邏輯
+        function viewReport(index) {
+            const payload = allRecords[index];
+            
+            document.getElementById('dashboard-view').classList.add('hidden');
+            document.getElementById('report-section').classList.remove('hidden');
+            window.scrollTo(0, 0);
+
+            document.getElementById('report-meeting-id').innerText = `會議編號：${payload.meetingId}`;
+            
+            let attendeesHtml = '<div class="grid grid-cols-3 gap-3 mt-2">';
+            if(payload.attendees && payload.attendees.length > 0) {
+                payload.attendees.forEach((p, idx) => {
+                    attendeesHtml += `
+                        <div class="border border-slate-200 rounded p-1 text-center bg-slate-50 avoid-break">
+                            <img src="${p.sign}" class="print-sign w-full h-12 object-contain mb-1 bg-white border border-slate-100">
+                            <div class="text-[9px] text-slate-500 font-bold">簽署人員 ${idx + 1}</div>
+                        </div>`;
+                });
+            } else {
+                attendeesHtml += '<div class="text-sm text-slate-500">無人員簽名紀錄</div>';
+            }
+            attendeesHtml += '</div>';
+
+            let photoHtml = '';
+            if(payload.photo) {
+                photoHtml = `
+                <div class="mt-4 border-t-2 border-slate-800 pt-3">
+                    <h3 class="font-bold text-slate-800 mb-2 text-xs"><i class="fa-solid fa-camera mr-1"></i> 現場會議照片</h3>
+                    <img src="${payload.photo}" class="print-photo w-full rounded border border-slate-200 bg-slate-50 mx-auto">
+                </div>`;
+            }
+
+            document.getElementById('report-tbody').innerHTML = `
+                <tr class="avoid-break">
+                    <td style="padding-top: 15px;">
+                        <table class="w-full text-xs border-collapse border border-slate-300">
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">作業單位</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.unit}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100 w-[15%]">日期時間</td>
+                                <td class="border border-slate-300 p-1.5 w-[35%]">${payload.datetime}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業名稱</td>
+                                <td class="border border-slate-300 p-1.5 text-blue-700 font-bold" colspan="3">${payload.taskName}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業位置</td>
+                                <td class="border border-slate-300 p-1.5">${payload.location}</td>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">作業內容</td>
+                                <td class="border border-slate-300 p-1.5">${payload.content}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">機具設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.tools}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">防護設備</td>
+                                <td class="border border-slate-300 p-1.5" colspan="3">${payload.ppe}</td>
+                            </tr>
+                            <tr>
+                                <td class="border border-slate-300 p-1.5 font-bold bg-slate-100">危害因素</td>
+                                <td class="border border-slate-300 p-1.5 text-red-600 font-bold" colspan="3">${payload.hazards}</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr class="allow-break">
+                    <td style="padding-top: 15px;">
+                        <h3 class="font-bold text-slate-800 bg-slate-100 px-3 py-1 border-l-4 border-[#0f3460] mb-2 text-sm">安全防護對策與宣導</h3>
+                        <div class="text-[10px] text-slate-700 whitespace-pre-wrap leading-relaxed px-2">${payload.preventions}</div>
+                    </td>
+                </tr>
+                <tr class="avoid-break">
+                    <td style="padding-top: 15px;">
+                        <div class="border-t border-slate-200 pt-3">
+                            <h3 class="font-bold text-slate-800 mb-1 text-xs">現場作業主管簽名</h3>
+                            <div class="border border-slate-200 bg-slate-50 rounded p-1 h-12 flex items-center justify-start w-1/3">
+                                <img src="${payload.supervisorSign}" class="print-sign max-h-full max-w-full">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="avoid-break">
+                    <td style="padding-top: 15px;">
+                        <div class="bg-indigo-50 px-3 py-1 border-l-4 border-indigo-600 mb-2 mt-2">
+                            <h3 class="font-bold text-slate-800 text-sm">參與人員簽署確認清單</h3>
+                            <div class="text-[9px] text-indigo-700 font-bold mt-0.5">作業安全承諾：我已了解並遵守所有安全作業規範與危害告知內容，確保自身與他人安全。</div>
+                        </div>
+                        ${attendeesHtml}
+                    </td>
+                </tr>
+                ${payload.photo ? `
+                <tr class="avoid-break">
+                    <td style="padding-top: 15px; padding-bottom: 20px;">
+                        ${photoHtml}
+                    </td>
+                </tr>` : ''}
+            `;
+        }
+
+        function closeReport() {
+            document.getElementById('report-section').classList.add('hidden');
+            document.getElementById('dashboard-view').classList.remove('hidden');
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
