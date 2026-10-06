@@ -93,6 +93,8 @@
                         <div id="cg-content" class="mb-2">
                             <input type="radio" id="cnt-1" name="taskContent" value="洗地打蠟作業" class="chip-checkbox"><label for="cnt-1" class="chip-label">洗地打蠟作業</label>
                             <input type="radio" id="cnt-2" name="taskContent" value="高空作業" class="chip-checkbox"><label for="cnt-2" class="chip-label">高空作業</label>
+                            <!-- 🌟 新增：吊籠作業 -->
+                            <input type="radio" id="cnt-6" name="taskContent" value="吊籠作業" class="chip-checkbox"><label for="cnt-6" class="chip-label">吊籠作業</label>
                             <input type="radio" id="cnt-3" name="taskContent" value="道路作業" class="chip-checkbox"><label for="cnt-3" class="chip-label">道路作業</label>
                             <input type="radio" id="cnt-4" name="taskContent" value="一般清潔、除塵、保養作業" class="chip-checkbox"><label for="cnt-4" class="chip-label">一般清潔/保養</label>
                             <input type="radio" id="cnt-5" name="taskContent" value="其他" class="chip-checkbox"><label for="cnt-5" class="chip-label">其他</label>
@@ -105,6 +107,8 @@
                         <div id="cg-tools" class="mb-2">
                             <input type="checkbox" id="tl-1" value="駕駛式洗地車" class="chip-checkbox"><label for="tl-1" class="chip-label">駕駛式洗地車</label>
                             <input type="checkbox" id="tl-2" value="合梯" class="chip-checkbox"><label for="tl-2" class="chip-label">合梯</label>
+                            <!-- 🌟 新增：吊籠 -->
+                            <input type="checkbox" id="tl-14" value="吊籠" class="chip-checkbox"><label for="tl-14" class="chip-label">吊籠</label>
                             <input type="checkbox" id="tl-3" value="鼓風機" class="chip-checkbox"><label for="tl-3" class="chip-label">鼓風機</label>
                             <input type="checkbox" id="tl-4" value="兩用吸塵器" class="chip-checkbox"><label for="tl-4" class="chip-label">兩用吸塵器</label>
                             <input type="checkbox" id="tl-5" value="打蠟機" class="chip-checkbox"><label for="tl-5" class="chip-label">打蠟機</label>
@@ -226,7 +230,7 @@
         </main>
     </div>
 
-    <!-- 🌟 結案報表區塊 -->
+    <!-- 結案報表預覽區塊 -->
     <div id="report-section" class="hidden no-print max-w-4xl mx-auto px-0 md:px-4 py-8">
         
         <div class="mb-4 px-4 flex justify-between items-center no-print">
@@ -243,7 +247,6 @@
                 <thead>
                     <tr>
                         <td style="padding-bottom: 20px;">
-                            <!-- 🌟 將標題統一為 24px 大小 -->
                             <div style="text-align: center; border-bottom: 2px solid #0f3460; padding-bottom: 10px; padding-top: 10px;">
                                 <h2 style="font-size: 24px; font-weight: bold; color: #0f3460; letter-spacing: 2px; margin: 0; line-height: 1.5;">信實集團<br>工具箱安全會議暨危害告知單</h2>
                                 <p style="font-size: 14px; color: #64748b; font-weight: bold; margin-top: 5px;" id="report-meeting-id"></p>
@@ -266,9 +269,10 @@
         let photoBase64 = ""; 
         let canvasDataCache = {}; 
 
+        // 🌟 擴充：加入吊籠作業防護對策於墜落/滾落項目中
         let globalPreventionRules = {
             "滑倒/跌倒": "1. 環境整理：作業前應確認地面、通道狀況，設備線材應妥善放置；照明不足時增設照明。\n2. 濕滑管制：清洗打蠟作業應設置警告標示並適當圈圍，必要時調整動線。\n3. 個人防護：作業人員應穿著具防滑功能之工作鞋。",
-            "墜落/滾落": "1. 高處防護：2公尺以上高處作業應設置墜落防護措施，正確使用安全帽、安全帶。\n2. 限制條件：遇強風、大雨、視線不良或身體不適時，不得從事高處作業。\n3. 高空車作業：操作人員應具資格並完成檢點；安全帶掛設於指定掛點，嚴禁攀爬護欄。",
+            "墜落/滾落": "1. 高處防護：2公尺以上高處作業應設置墜落防護措施，正確使用安全帽、安全帶。\n2. 限制條件：遇強風、大雨、視線不良或身體不適時，不得從事高處作業。\n3. 高空車作業：操作人員應具資格並完成檢點；安全帶掛設於指定掛點，嚴禁攀爬護欄。\n4. 吊籠作業：操作人員應具備合格證照；作業前確認吊籠支撐、鋼索及捲揚機正常；人員必須將背負式安全帶掛載於獨立的救命索上，嚴禁超載或攀爬出吊籠外。",
             "缺氧/中毒": "測氧與通風：從事危險場所作業前應完成許可及危害確認，測定氣體濃度並維持通風。",
             "物體飛落/壓傷": "1. 高處防護：高處作業之工具及材料應妥善固定，必要時使用防墜繫繩。\n2. 區域管制：嚴禁從吊舉物下方通過，施工區域周遭設置警示區嚴禁進入。",
             "倒塌/崩塌": "1. 設施穩固：施工架、合梯應確認設置穩固、構件完整。\n2. 物料堆置：物料應穩妥堆放，必要時採固定或限制高度。",
@@ -553,7 +557,6 @@
                 </div>`;
             }
 
-            // 🌟 移除 table-fixed，讓表格在手機版能流暢分配寬度，不再疊字！
             reportTbody.innerHTML = `
                 <tr>
                     <td class="pt-4 pb-2 avoid-break">
